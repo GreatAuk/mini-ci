@@ -1,8 +1,8 @@
-import { existsSync } from 'node:fs'
-import axios from 'axios'
-import Jimp from 'jimp'
-import jsQR from 'jsqr'
-import QRCode from 'qrcode'
+import { existsSync } from "node:fs";
+import axios from "axios";
+import Jimp from "jimp";
+import jsQR from "jsqr";
+import QRCode from "qrcode";
 
 /**
  * 读取二维码图片中的文本内容。
@@ -11,32 +11,30 @@ import QRCode from 'qrcode'
  * @returns 二维码文本内容
  */
 export async function readQrcodeImageContent(imagePath: string): Promise<string> {
-  let imageBuffer: Buffer | undefined
+  let imageBuffer: Buffer | undefined;
 
   if (!existsSync(imagePath)) {
     const response = await axios({
-      method: 'get',
+      method: "get",
       url: imagePath,
-      responseType: 'arraybuffer',
+      responseType: "arraybuffer",
       timeout: 8000,
-    })
-    imageBuffer = Buffer.from(response.data as ArrayBuffer)
+    });
+    imageBuffer = Buffer.from(response.data as ArrayBuffer);
   }
 
-  const image = imageBuffer
-    ? await Jimp.read(imageBuffer)
-    : await Jimp.read(imagePath)
+  const image = imageBuffer ? await Jimp.read(imageBuffer) : await Jimp.read(imagePath);
   const scanData = jsQR(
     new Uint8ClampedArray(image.bitmap.data),
     image.bitmap.width,
     image.bitmap.height,
-  )
+  );
 
   if (!scanData) {
-    throw new Error('扫描器 jsqr 未能识别出二维码内容')
+    throw new Error("扫描器 jsqr 未能识别出二维码内容");
   }
 
-  return scanData.data
+  return scanData.data;
 }
 
 /**
@@ -45,8 +43,8 @@ export async function readQrcodeImageContent(imagePath: string): Promise<string>
  * @param content 二维码文本内容
  */
 export async function printQrcode2Terminal(content: string): Promise<void> {
-  const terminalStr = await QRCode.toString(content, { type: 'terminal', small: true })
-  console.log(terminalStr)
+  const terminalStr = await QRCode.toString(content, { type: "terminal", small: true });
+  console.log(terminalStr);
 }
 
 /**
@@ -57,7 +55,7 @@ export async function printQrcode2Terminal(content: string): Promise<void> {
  */
 export async function generateQrcodeImageFile(filePath: string, content: string): Promise<void> {
   await QRCode.toFile(filePath, content, {
-    errorCorrectionLevel: 'L',
-    type: 'png',
-  })
+    errorCorrectionLevel: "L",
+    type: "png",
+  });
 }

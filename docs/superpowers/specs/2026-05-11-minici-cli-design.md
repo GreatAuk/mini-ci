@@ -23,13 +23,13 @@
 
 平台映射如下：
 
-| uniapp 平台 | CI 实现 |
-| --- | --- |
-| `mp-weixin` | `WeappCI.ts` |
-| `mp-alipay` | `AlipayCI.ts` |
-| `mp-baidu` | `SwanCI.ts` |
-| `mp-jd` | `JdCI.ts` |
-| `mp-toutiao` | `TTCI.ts` |
+| uniapp 平台  | CI 实现       |
+| ------------ | ------------- |
+| `mp-weixin`  | `WeappCI.ts`  |
+| `mp-alipay`  | `AlipayCI.ts` |
+| `mp-baidu`   | `SwanCI.ts`   |
+| `mp-jd`      | `JdCI.ts`     |
+| `mp-toutiao` | `TTCI.ts`     |
 
 平台 SDK 只在实际运行对应平台时检查。
 
@@ -72,25 +72,25 @@ src/
 配置文件使用 uniapp 平台名作为顶层 key。
 
 ```ts
-import { defineConfig } from 'uni-mini-ci-cli'
+import { defineConfig } from "uni-mini-ci-cli";
 
 export default defineConfig({
-  version: '1.0.0',
+  version: "1.0.0",
   desc: ({ platform, version }) => `${platform} ${version} 自动构建`,
-  projectPath: 'dist/build/mp-weixin',
+  projectPath: "dist/build/mp-weixin",
 
-  'mp-weixin': {
-    appid: '微信小程序 appid',
-    privateKeyPath: 'key/private.key',
+  "mp-weixin": {
+    appid: "微信小程序 appid",
+    privateKeyPath: "key/private.key",
     robot: 1,
   },
 
-  'mp-alipay': {
-    appid: '支付宝小程序 appid',
-    toolId: '工具 id',
-    privateKeyPath: 'key/pkcs8-private-pem',
+  "mp-alipay": {
+    appid: "支付宝小程序 appid",
+    toolId: "工具 id",
+    privateKeyPath: "key/pkcs8-private-pem",
   },
-})
+});
 ```
 
 `c12` 负责加载 `minici.config.ts`、`minici.config.js`、`minici.config.mjs`、`minici.config.cjs` 等常见格式。
@@ -142,28 +142,28 @@ minici --upload --platform mp-baidu --projectPath dist/build/mp-baidu
 
 ```ts
 type MiniCIDescFunction = (context: {
-  operation: 'open' | 'preview' | 'upload'
-  platform: 'mp-weixin' | 'mp-alipay' | 'mp-baidu' | 'mp-jd' | 'mp-toutiao'
-  version: string
-  projectPath: string
-  cwd: string
-  packageJson: Record<string, unknown>
-}) => string | Promise<string>
+  operation: "open" | "preview" | "upload";
+  platform: "mp-weixin" | "mp-alipay" | "mp-baidu" | "mp-jd" | "mp-toutiao";
+  version: string;
+  projectPath: string;
+  cwd: string;
+  packageJson: Record<string, unknown>;
+}) => string | Promise<string>;
 ```
 
 示例：
 
 ```ts
 export default defineConfig({
-  version: '1.0.0',
+  version: "1.0.0",
   desc: async ({ operation, platform, version, packageJson }) => {
-    return `${packageJson.name || 'miniapp'} ${platform} ${operation} ${version} 自动构建`
+    return `${packageJson.name || "miniapp"} ${platform} ${operation} ${version} 自动构建`;
   },
-  'mp-weixin': {
-    appid: '微信小程序 appid',
-    privateKeyPath: 'key/private.key',
+  "mp-weixin": {
+    appid: "微信小程序 appid",
+    privateKeyPath: "key/private.key",
   },
-})
+});
 ```
 
 ## 校验策略
@@ -226,13 +226,13 @@ export default defineConfig({
 
 平台 SDK 作为可选 peer dependency：
 
-| 平台 | 依赖 |
-| --- | --- |
-| `mp-weixin` | `miniprogram-ci` |
-| `mp-alipay` | `minidev` |
-| `mp-jd` | `jd-miniprogram-ci` |
-| `mp-baidu` | `swan-toolkit` |
-| `mp-toutiao` | `tt-ide-cli` |
+| 平台         | 依赖                |
+| ------------ | ------------------- |
+| `mp-weixin`  | `miniprogram-ci`    |
+| `mp-alipay`  | `minidev`           |
+| `mp-jd`      | `jd-miniprogram-ci` |
+| `mp-baidu`   | `swan-toolkit`      |
+| `mp-toutiao` | `tt-ide-cli`        |
 
 `peerDependenciesMeta.optional` 标记这些平台依赖为可选，避免用户安装不使用的平台 SDK。
 

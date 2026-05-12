@@ -1,15 +1,15 @@
-import { readFile } from 'node:fs/promises'
-import path from 'node:path'
-import { loadConfig } from 'c12'
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { loadConfig } from "c12";
 
-import type { MiniCIConfig } from '../types'
+import type { MiniCIConfig } from "../types";
 
 /** 加载 minici 配置的选项 */
 interface LoadMiniCIConfigOptions {
   /** 当前工作目录 */
-  cwd: string
+  cwd: string;
   /** 显式配置文件路径 */
-  config?: string
+  config?: string;
 }
 
 /**
@@ -21,13 +21,13 @@ interface LoadMiniCIConfigOptions {
 export async function loadMiniCIConfig(options: LoadMiniCIConfigOptions): Promise<MiniCIConfig> {
   const result = await loadConfig<MiniCIConfig>({
     cwd: options.cwd,
-    name: 'minici',
+    name: "minici",
     configFile: options.config,
     dotenv: false,
     rcFile: false,
-  })
+  });
 
-  return result.config || {}
+  return result.config || {};
 }
 
 /**
@@ -38,13 +38,13 @@ export async function loadMiniCIConfig(options: LoadMiniCIConfigOptions): Promis
  */
 export async function loadPackageJson(cwd: string): Promise<Record<string, unknown>> {
   try {
-    const content = await readFile(path.join(cwd, 'package.json'), 'utf8')
-    return JSON.parse(content) as Record<string, unknown>
+    const content = await readFile(path.join(cwd, "package.json"), "utf8");
+    return JSON.parse(content) as Record<string, unknown>;
   } catch (error) {
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
-      return {}
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+      return {};
     }
 
-    throw error
+    throw error;
   }
 }

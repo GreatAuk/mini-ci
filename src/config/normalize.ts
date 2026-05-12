@@ -1,5 +1,5 @@
-import path from 'node:path'
-import { validateConfig, validatePlatformConfig } from './schema'
+import path from "node:path";
+import { validateConfig, validatePlatformConfig } from "./schema";
 
 import type {
   MiniCIConfig,
@@ -7,18 +7,18 @@ import type {
   MiniCIPlatform,
   NormalizedMiniCIConfig,
   ParsedCliArgs,
-} from '../types'
+} from "../types";
 
 /** 配置归一化入参 */
 export interface NormalizeConfigInput<P extends MiniCIPlatform = MiniCIPlatform> {
   /** 已解析的命令行参数 */
-  args: ParsedCliArgs & { platform: P }
+  args: ParsedCliArgs & { platform: P };
   /** 当前工作目录 */
-  cwd: string
+  cwd: string;
   /** 已加载的 minici 配置 */
-  config: MiniCIConfig
+  config: MiniCIConfig;
   /** 当前项目 package.json 内容 */
-  packageJson: Record<string, unknown>
+  packageJson: Record<string, unknown>;
 }
 
 /**
@@ -33,9 +33,9 @@ function readPackageJsonString(
   field: string,
 ): string | undefined {
   /** package.json 原始字段值 */
-  const value = packageJson[field]
+  const value = packageJson[field];
 
-  return typeof value === 'string' ? value : undefined
+  return typeof value === "string" ? value : undefined;
 }
 
 /**
@@ -47,10 +47,10 @@ function readPackageJsonString(
  */
 function normalizeProjectPath(cwd: string, projectPath: string): string {
   if (path.isAbsolute(projectPath)) {
-    return projectPath
+    return projectPath;
   }
 
-  return path.join(cwd, projectPath)
+  return path.join(cwd, projectPath);
 }
 
 /**
@@ -67,14 +67,14 @@ async function resolveDesc<P extends MiniCIPlatform>(
   projectPath: string,
 ): Promise<string> {
   if (input.args.desc) {
-    return input.args.desc
+    return input.args.desc;
   }
 
-  if (typeof input.config.desc === 'string') {
-    return input.config.desc
+  if (typeof input.config.desc === "string") {
+    return input.config.desc;
   }
 
-  if (typeof input.config.desc === 'function') {
+  if (typeof input.config.desc === "function") {
     /** 发布描述函数上下文 */
     const context: MiniCIDescContext = {
       operation: input.args.operation,
@@ -83,25 +83,22 @@ async function resolveDesc<P extends MiniCIPlatform>(
       projectPath,
       cwd: input.cwd,
       packageJson: input.packageJson,
-    }
+    };
 
     /** 发布描述函数返回值 */
-    const resolvedDesc = await input.config.desc(context)
+    const resolvedDesc = await input.config.desc(context);
 
-    if (typeof resolvedDesc !== 'string' || resolvedDesc.length === 0) {
-      throw new Error('配置校验失败：desc 函数必须返回非空字符串')
+    if (typeof resolvedDesc !== "string" || resolvedDesc.length === 0) {
+      throw new Error("配置校验失败：desc 函数必须返回非空字符串");
     }
 
-    return resolvedDesc
+    return resolvedDesc;
   }
 
   /** package.json 中的 description */
-  const packageDescription = readPackageJsonString(
-    input.packageJson,
-    'description',
-  )
+  const packageDescription = readPackageJsonString(input.packageJson, "description");
 
-  return packageDescription ?? `CI 自动构建于 ${new Date().toLocaleString()}`
+  return packageDescription ?? `CI 自动构建于 ${new Date().toLocaleString()}`;
 }
 
 /**
@@ -114,18 +111,18 @@ export async function normalizeConfig<P extends MiniCIPlatform>(
   input: NormalizeConfigInput<P>,
 ): Promise<NormalizedMiniCIConfig<P>> {
   /** 校验后的完整配置 */
-  const config = validateConfig(input.config)
+  const config = validateConfig(input.config);
   /** 当前平台配置 */
-  const platformConfig = validatePlatformConfig(input.args.platform, config)
+  const platformConfig = validatePlatformConfig(input.args.platform, config);
   /** package.json 中的 version */
-  const packageVersion = readPackageJsonString(input.packageJson, 'version')
+  const packageVersion = readPackageJsonString(input.packageJson, "version");
   /** 归一化后的版本号 */
-  const version = input.args.version ?? config.version ?? packageVersion ?? '0.0.0'
+  const version = input.args.version ?? config.version ?? packageVersion ?? "0.0.0";
   /** 原始项目路径 */
   const rawProjectPath =
-    input.args.projectPath ?? config.projectPath ?? `dist/build/${input.args.platform}`
+    input.args.projectPath ?? config.projectPath ?? `dist/build/${input.args.platform}`;
   /** 归一化后的项目路径 */
-  const projectPath = normalizeProjectPath(input.cwd, rawProjectPath)
+  const projectPath = normalizeProjectPath(input.cwd, rawProjectPath);
   /** 归一化后的发布描述 */
   const desc = await resolveDesc(
     {
@@ -134,7 +131,7 @@ export async function normalizeConfig<P extends MiniCIPlatform>(
     },
     version,
     projectPath,
-  )
+  );
 
   /** 规范化后的配置 */
   const normalizedConfig = {
@@ -146,7 +143,7 @@ export async function normalizeConfig<P extends MiniCIPlatform>(
     desc,
     packageJson: input.packageJson,
     platformConfig,
-  } as NormalizedMiniCIConfig<P>
+  } as NormalizedMiniCIConfig<P>;
 
-  return normalizedConfig
+  return normalizedConfig;
 }

@@ -28,18 +28,18 @@ pnpm add -D tt-ide-cli
 创建 `minici.config.ts`：
 
 ```ts
-import { defineConfig } from 'uni-mini-ci-cli'
+import { defineConfig } from "uni-mini-ci-cli";
 
 export default defineConfig({
-  version: '1.0.0',
+  version: "1.0.0",
   desc: ({ platform, version }) => `${platform} ${version} 自动构建`,
-  projectPath: 'dist/build/mp-weixin',
-  'mp-weixin': {
-    appid: '微信小程序 appid',
-    privateKeyPath: 'key/private.key',
+  projectPath: "dist/build/mp-weixin",
+  "mp-weixin": {
+    appid: "微信小程序 appid",
+    privateKeyPath: "key/private.key",
     robot: 1,
   },
-})
+});
 ```
 
 ## 命令

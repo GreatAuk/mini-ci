@@ -1,12 +1,12 @@
-import type { MiniCIPlatform, MiniCIResult, NormalizedMiniCIConfig } from '../types'
+import type { MiniCIPlatform, MiniCIResult, NormalizedMiniCIConfig } from "../types";
 
 /** 平台 CI 基类 */
 export abstract class BaseCI<P extends MiniCIPlatform = MiniCIPlatform> {
   /** 运行时配置 */
-  protected config: NormalizedMiniCIConfig<P>
+  protected config: NormalizedMiniCIConfig<P>;
 
   constructor(config: NormalizedMiniCIConfig<P>) {
-    this.config = config
+    this.config = config;
   }
 
   /**
@@ -25,15 +25,15 @@ export abstract class BaseCI<P extends MiniCIPlatform = MiniCIPlatform> {
       desc: this.config.desc,
       projectPath: this.config.projectPath,
       ...extra,
-    }
+    };
   }
 
   /** 初始化平台 SDK */
-  abstract init(): void | Promise<void>
+  abstract init(): void | Promise<void>;
   /** 打开开发者工具 */
-  abstract open(): Promise<MiniCIResult>
+  abstract open(): Promise<MiniCIResult>;
   /** 预览小程序 */
-  abstract preview(): Promise<MiniCIResult>
+  abstract preview(): Promise<MiniCIResult>;
   /** 上传小程序 */
-  abstract upload(): Promise<MiniCIResult>
+  abstract upload(): Promise<MiniCIResult>;
 }

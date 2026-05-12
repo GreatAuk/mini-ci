@@ -1,5 +1,5 @@
-import { z } from 'zod'
-import { supportedPlatforms } from '../types'
+import { z } from "zod";
+import { supportedPlatforms } from "../types";
 
 import type {
   AlipayClientType,
@@ -8,49 +8,46 @@ import type {
   MiniCIPlatform,
   PlatformConfigMap,
   ProjectType,
-} from '../types'
+} from "../types";
 
 /** 描述函数 schema */
 const descFunctionSchema = z.custom<MiniCIDescFunction>(
-  (value) => typeof value === 'function',
-  'desc 必须是字符串或函数',
-)
+  (value) => typeof value === "function",
+  "desc 必须是字符串或函数",
+);
 
 /** 非空字符串 schema */
-const nonEmptyStringSchema = z.string().min(1, '不能为空')
+const nonEmptyStringSchema = z.string().min(1, "不能为空");
 
 /** 版本号 schema */
-const versionSchema = nonEmptyStringSchema.regex(
-  /^\d+\.\d+\.\d+$/,
-  '必须是 x.y.z 格式',
-)
+const versionSchema = nonEmptyStringSchema.regex(/^\d+\.\d+\.\d+$/, "必须是 x.y.z 格式");
 
 /** 微信项目类型 schema */
 const projectTypeSchema = z.enum([
-  'miniProgram',
-  'miniGame',
-  'miniProgramPlugin',
-  'miniGamePlugin',
-] satisfies ProjectType[])
+  "miniProgram",
+  "miniGame",
+  "miniProgramPlugin",
+  "miniGamePlugin",
+] satisfies ProjectType[]);
 
 /** 支付宝上传终端类型 schema */
 const alipayClientTypeSchema = z.enum([
-  'alipay',
-  'ampe',
-  'amap',
-  'genie',
-  'alios',
-  'uc',
-  'quark',
-  'koubei',
-  'alipayiot',
-  'cainiao',
-  'alihealth',
-  'health',
-] satisfies AlipayClientType[])
+  "alipay",
+  "ampe",
+  "amap",
+  "genie",
+  "alios",
+  "uc",
+  "quark",
+  "koubei",
+  "alipayiot",
+  "cainiao",
+  "alihealth",
+  "health",
+] satisfies AlipayClientType[]);
 
 /** 未知对象字段 schema */
-const unknownRecordSchema = z.record(z.string(), z.unknown())
+const unknownRecordSchema = z.record(z.string(), z.unknown());
 
 /** 微信小程序配置 schema */
 const weappConfigSchema = z
@@ -70,7 +67,7 @@ const weappConfigSchema = z
     /** 预览和上传时的编译设置 */
     setting: unknownRecordSchema.optional(),
   })
-  .strict()
+  .strict();
 
 /** 支付宝小程序配置 schema */
 const alipayConfigSchema = z
@@ -91,13 +88,10 @@ const alipayConfigSchema = z
     deleteVersion: versionSchema.optional(),
   })
   .strict()
-  .refine(
-    (config) => Boolean(config.privateKeyPath || config.privateKey),
-    {
-      message: 'privateKeyPath 或 privateKey 至少需要提供一个',
-      path: ['privateKeyPath'],
-    },
-  )
+  .refine((config) => Boolean(config.privateKeyPath || config.privateKey), {
+    message: "privateKeyPath 或 privateKey 至少需要提供一个",
+    path: ["privateKeyPath"],
+  });
 
 /** 京东小程序配置 schema */
 const jdConfigSchema = z
@@ -109,7 +103,7 @@ const jdConfigSchema = z
     /** 上传忽略规则 */
     ignores: z.array(nonEmptyStringSchema).optional(),
   })
-  .strict()
+  .strict();
 
 /** 百度小程序配置 schema */
 const swanConfigSchema = z
@@ -121,7 +115,7 @@ const swanConfigSchema = z
     /** 百度开发者工具安装路径 */
     devToolsInstallPath: nonEmptyStringSchema.optional(),
   })
-  .strict()
+  .strict();
 
 /** 字节小程序配置 schema */
 const ttConfigSchema = z
@@ -139,7 +133,7 @@ const ttConfigSchema = z
       .strict()
       .optional(),
   })
-  .strict()
+  .strict();
 
 /** minici 配置文件 schema */
 export const miniciConfigSchema = z
@@ -151,17 +145,17 @@ export const miniciConfigSchema = z
     /** 小程序构建产物目录 */
     projectPath: nonEmptyStringSchema.optional(),
     /** 微信小程序配置 */
-    'mp-weixin': weappConfigSchema.optional(),
+    "mp-weixin": weappConfigSchema.optional(),
     /** 支付宝小程序配置 */
-    'mp-alipay': alipayConfigSchema.optional(),
+    "mp-alipay": alipayConfigSchema.optional(),
     /** 百度小程序配置 */
-    'mp-baidu': swanConfigSchema.optional(),
+    "mp-baidu": swanConfigSchema.optional(),
     /** 京东小程序配置 */
-    'mp-jd': jdConfigSchema.optional(),
+    "mp-jd": jdConfigSchema.optional(),
     /** 字节小程序配置 */
-    'mp-toutiao': ttConfigSchema.optional(),
+    "mp-toutiao": ttConfigSchema.optional(),
   })
-  .strict() satisfies z.ZodType<MiniCIConfig>
+  .strict() satisfies z.ZodType<MiniCIConfig>;
 
 /**
  * 将 zod 错误格式化为包含字段路径的配置错误。
@@ -173,12 +167,12 @@ function formatConfigError(error: z.ZodError): Error {
   /** 字段错误描述列表 */
   const messages = error.issues.map((issue) => {
     /** 字段路径 */
-    const path = issue.path.join('.')
+    const path = issue.path.join(".");
 
-    return `${path || 'config'} ${issue.message}`
-  })
+    return `${path || "config"} ${issue.message}`;
+  });
 
-  return new Error(`配置校验失败：${messages.join('；')}`)
+  return new Error(`配置校验失败：${messages.join("；")}`);
 }
 
 /**
@@ -189,13 +183,13 @@ function formatConfigError(error: z.ZodError): Error {
  */
 export function validateConfig(config: unknown): MiniCIConfig {
   /** 配置校验结果 */
-  const result = miniciConfigSchema.safeParse(config)
+  const result = miniciConfigSchema.safeParse(config);
 
   if (!result.success) {
-    throw formatConfigError(result.error)
+    throw formatConfigError(result.error);
   }
 
-  return result.data
+  return result.data;
 }
 
 /**
@@ -210,15 +204,15 @@ export function validatePlatformConfig<P extends MiniCIPlatform>(
   config: unknown,
 ): PlatformConfigMap[P] {
   /** 已校验的完整配置 */
-  const parsedConfig = validateConfig(config)
+  const parsedConfig = validateConfig(config);
   /** 当前平台配置 */
-  const platformConfig = parsedConfig[platform]
+  const platformConfig = parsedConfig[platform];
 
   if (!platformConfig) {
-    throw new Error(`配置校验失败：${platform} 平台配置不能为空`)
+    throw new Error(`配置校验失败：${platform} 平台配置不能为空`);
   }
 
-  return platformConfig as PlatformConfigMap[P]
+  return platformConfig as PlatformConfigMap[P];
 }
 
 /**
@@ -227,8 +221,6 @@ export function validatePlatformConfig<P extends MiniCIPlatform>(
  * @param platform 当前平台
  * @returns 是否为支持的平台
  */
-export function isSupportedConfigPlatform(
-  platform: string,
-): platform is MiniCIPlatform {
-  return supportedPlatforms.includes(platform as MiniCIPlatform)
+export function isSupportedConfigPlatform(platform: string): platform is MiniCIPlatform {
+  return supportedPlatforms.includes(platform as MiniCIPlatform);
 }
