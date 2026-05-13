@@ -25,6 +25,8 @@ interface ParsedOptions {
   preview?: unknown;
   /** 上传体验版 */
   upload?: unknown;
+  /** 是否为开发构建 */
+  dev?: unknown;
 }
 
 /** 允许出现的 CAC 选项名 */
@@ -41,6 +43,7 @@ const allowedOptionNames = new Set([
   "open",
   "preview",
   "upload",
+  "dev",
 ]);
 
 /**
@@ -108,7 +111,8 @@ function createCliParser(): CAC {
     .option("--version <version>", "发布版本")
     .option("--desc <desc>", "发布描述")
     .option("--config <config>", "配置文件路径")
-    .option("--cwd <cwd>", "当前工作目录");
+    .option("--cwd <cwd>", "当前工作目录")
+    .option("--dev", "标记为开发构建，默认 projectPath 使用 dist/dev/<platform>");
 
   return cli;
 }
@@ -198,6 +202,10 @@ export function parseCliArgs(argv: string[]): ParsedCliArgs {
 
   if (cwd) {
     cliArgs.cwd = cwd;
+  }
+
+  if (options.dev === true) {
+    cliArgs.dev = true;
   }
 
   return cliArgs;

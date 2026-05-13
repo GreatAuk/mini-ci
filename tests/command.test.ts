@@ -125,4 +125,19 @@ describe("parseCliArgs", () => {
       platform: "mp-toutiao",
     });
   });
+
+  test("解析 --dev 标记", () => {
+    expect(parseCliArgs(["--open", "--platform", "mp-weixin", "--dev"])).toEqual({
+      operation: "open",
+      platform: "mp-weixin",
+      dev: true,
+    });
+  });
+
+  test("不传 --dev 时结果中不含 dev 字段", () => {
+    const result = parseCliArgs(["--open", "--platform", "mp-weixin"]);
+
+    expect(result).not.toHaveProperty("dev");
+  });
 });
+

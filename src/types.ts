@@ -182,6 +182,8 @@ export interface ParsedCliArgs {
   config?: string;
   /** 当前工作目录 */
   cwd?: string;
+  /** 标记为开发构建；默认 projectPath 使用 dist/dev/<platform> */
+  dev?: boolean;
 }
 
 /** 规范化后的 minici 执行配置公共字段 */

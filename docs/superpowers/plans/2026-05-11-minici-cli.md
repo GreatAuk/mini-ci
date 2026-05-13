@@ -937,9 +937,10 @@ export async function normalizeConfig(
   const platformConfig = validatePlatformConfig(input.args.platform, config);
   const version =
     input.args.version || config.version || readString(input.packageJson.version) || "0.0.0";
-  const projectPath = resolvePath(
+  const rawProjectPath = resolvePath(
     input.cwd,
-    input.args.projectPath || config.projectPath || `dist/build/${input.args.platform}`,
+    input.args.projectPath || config.projectPath ||
+      (input.args.dev ? `dist/dev/${input.args.platform}` : `dist/build/${input.args.platform}`),
   );
 
   let desc = input.args.desc;

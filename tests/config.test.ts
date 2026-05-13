@@ -257,4 +257,54 @@ describe("normalizeConfig", () => {
       }),
     ).rejects.toThrow(/desc/);
   });
+
+  test("当命令行和配置都没有 projectPath 时默认为 dist/build/<platform>", async () => {
+    /** 当前工作目录 */
+    const cwd = "/workspace/project";
+
+    await expect(
+      normalizeConfig({
+        cwd,
+        args: {
+          operation: "upload",
+          platform: "mp-weixin",
+        },
+        config: {
+          "mp-weixin": {
+            appid: "wx-appid",
+            privateKeyPath: "keys/private.key",
+          },
+        },
+        packageJson: {},
+      }),
+    ).resolves.toMatchObject({
+      projectPath: path.join(cwd, "dist/build/mp-weixin"),
+    });
+  });
+
+  test("传入 --dev 时默认 projectPath 为 dist/dev/<platform>", async () => {
+    /** 当前工作目录 */
+    const cwd = "/workspace/project";
+
+    await expect(
+      normalizeConfig({
+        cwd,
+        args: {
+          operation: "open",
+          platform: "mp-weixin",
+          dev: true,
+        },
+        config: {
+          "mp-weixin": {
+            appid: "wx-appid",
+            privateKeyPath: "keys/private.key",
+          },
+        },
+        packageJson: {},
+      }),
+    ).resolves.toMatchObject({
+      projectPath: path.join(cwd, "dist/dev/mp-weixin"),
+    });
+  });
 });
+

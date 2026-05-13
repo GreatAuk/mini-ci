@@ -1,9 +1,22 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { WeappCI } from "../src/ci/WeappCI";
 import { AlipayCI } from "../src/ci/AlipayCI";
 import { JdCI } from "../src/ci/JdCI";
 import { SwanCI } from "../src/ci/SwanCI";
 import { TTCI } from "../src/ci/TTCI";
+
+vi.mock("../src/utils/npm", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../src/utils/npm")>();
+  return {
+    ...actual,
+    resolveNpmSync: (pluginName: string) => {
+      throw new Error(`Cannot find module '${pluginName}'`);
+    },
+    getNpmPkgSync: (pluginName: string) => {
+      throw new Error(`Cannot find module '${pluginName}'`);
+    },
+  };
+});
 
 describe("WeappCI", () => {
   test("私钥路径不存在时抛出错误", async () => {

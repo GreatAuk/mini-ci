@@ -114,6 +114,7 @@ minici --upload --platform mp-baidu --projectPath dist/build/mp-baidu
 - `--projectPath`：可选，指定已构建的小程序产物目录。
 - `--version`：可选，覆盖发布版本号。
 - `--desc`：可选，覆盖发布描述；命令行传入时按字符串处理，并覆盖配置文件中的 `desc` 函数。
+- `--dev`：可选，标记为开发构建；默认 `projectPath` 使用 `dist/dev/<platform>`。
 - `--config`：可选，指定配置文件路径；不传时从当前工作目录向上查找 `minici.config`。
 - `--cwd`：可选，指定项目根目录；不传时使用当前工作目录。
 
@@ -132,7 +133,7 @@ minici --upload --platform mp-baidu --projectPath dist/build/mp-baidu
 具体规则：
 
 - `platform` 必须来自命令行参数，不从配置文件推断，避免自动化脚本误上传。
-- `projectPath` 优先使用命令行参数，其次配置文件；都没有时默认为 `dist/build/<platform>`。
+- `projectPath` 优先使用命令行参数，其次配置文件；都没有时，若传入 `--dev` 则默认为 `dist/dev/<platform>`，否则默认为 `dist/build/<platform>`。
 - `version` 优先使用命令行参数，其次配置文件，再读 `package.json.version`，最后为 `0.0.0`。
 - `desc` 优先使用命令行参数，其次配置文件，再读 `package.json.description`，最后为 `CI 自动构建于 <时间>`。
 - 当配置文件中的 `desc` 是函数时，支持返回 `string | Promise<string>`，函数会在 `version`、`projectPath` 和平台配置归一化后执行。

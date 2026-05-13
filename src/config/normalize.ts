@@ -53,6 +53,7 @@ function normalizeProjectPath(cwd: string, projectPath: string): string {
   return path.join(cwd, projectPath);
 }
 
+
 /**
  * 解析发布描述。
  *
@@ -120,7 +121,9 @@ export async function normalizeConfig<P extends MiniCIPlatform>(
   const version = input.args.version ?? config.version ?? packageVersion ?? "0.0.0";
   /** 原始项目路径 */
   const rawProjectPath =
-    input.args.projectPath ?? config.projectPath ?? `dist/build/${input.args.platform}`;
+    input.args.projectPath ??
+    config.projectPath ??
+    (input.args.dev ? `dist/dev/${input.args.platform}` : `dist/build/${input.args.platform}`);
   /** 归一化后的项目路径 */
   const projectPath = normalizeProjectPath(input.cwd, rawProjectPath);
   /** 归一化后的发布描述 */
