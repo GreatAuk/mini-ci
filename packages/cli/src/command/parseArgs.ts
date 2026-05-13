@@ -1,7 +1,7 @@
 import { CAC } from "cac";
-import { supportedOperations, supportedPlatforms } from "../types";
+import { supportedOperations, supportedPlatforms } from "uni-mini-ci-core";
 
-import type { MiniCIOperation, MiniCIPlatform, ParsedCliArgs } from "../types";
+import type { MiniCIOperation, MiniCIPlatform, ParsedCliArgs } from "uni-mini-ci-core";
 
 /** CAC 解析后的选项结构 */
 interface ParsedOptions {

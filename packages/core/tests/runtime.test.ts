@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
-import { loadMiniCIConfig, loadPackageJson } from "../src/config/loadConfig";
+import { loadPackageJson } from "../src/config/loadPackageJson";
 import { createRuntimeContext } from "../src/runtime/createContext";
 
 /** 临时目录列表，测试结束后清理 */
@@ -35,14 +35,6 @@ describe("loadPackageJson", () => {
     const cwd = await createTempDir();
 
     await expect(loadPackageJson(cwd)).resolves.toEqual({});
-  });
-});
-
-describe("loadMiniCIConfig", () => {
-  test("不存在配置文件时返回空对象", async () => {
-    const cwd = await createTempDir();
-
-    await expect(loadMiniCIConfig({ cwd })).resolves.toEqual({});
   });
 });
 

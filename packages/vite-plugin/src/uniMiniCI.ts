@@ -1,9 +1,21 @@
 import { parsePluginArgs } from "./parsePluginArgs";
-import { isPlatform } from "../command/parseArgs";
-import { runMiniCIWithConfig } from "../runMiniCIWithConfig";
+import { runMiniCIWithConfig, supportedPlatforms } from "uni-mini-ci-core";
 
 import type { Plugin, ResolvedConfig } from "vite";
-import type { MiniCIPlatform, UniMiniCIPluginOptions } from "../types";
+import type { MiniCIConfig, MiniCIPlatform } from "uni-mini-ci-core";
+
+/** Vite 插件配置结构 */
+export interface UniMiniCIPluginOptions extends MiniCIConfig {}
+
+/**
+ * 判断字符串是否为支持的 uniapp 小程序平台。
+ *
+ * @param value 待判断的平台字符串
+ * @returns 是否为支持的平台
+ */
+function isPlatform(value: string): value is MiniCIPlatform {
+  return supportedPlatforms.includes(value as MiniCIPlatform);
+}
 
 /** Vite 插件名称 */
 const pluginName = "vite-plugin-uni-mini-ci";

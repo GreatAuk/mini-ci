@@ -156,16 +156,6 @@ export interface PlatformConfigMap {
   "mp-toutiao": TTConfig;
 }
 
-/** CLI 入口选项 */
-export interface CliOptions {
-  /** 命令参数 */
-  argv: string[];
-  /** 当前工作目录 */
-  cwd?: string;
-  /** 是否直接退出进程 */
-  exitProcess?: boolean;
-}
-
 /** 已解析的 CLI 参数 */
 export interface ParsedCliArgs {
   /** 当前操作 */
@@ -242,6 +232,3 @@ export interface RunMiniCIWithConfigOptions {
   /** 已加载或直接传入的 minici 配置 */
   config: MiniCIConfig;
 }
-
-/** Vite 插件配置结构 */
-export interface UniMiniCIPluginOptions extends MiniCIConfig {}

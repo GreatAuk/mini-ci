@@ -1,11 +1,13 @@
 # Vite 插件使用文档
 
-`uni-mini-ci-cli` 提供 `uniMiniCI()` Vite 插件，与 uniapp 的 Vite 构建流程深度集成，构建完成后自动执行 CI 操作。
+`vite-plugin-uni-mini-ci` 提供 `uniMiniCI()` Vite 插件，与 uniapp 的 Vite 构建流程深度集成，构建完成后自动执行 CI 操作。
+
+> monorepo 拆分后，`uniMiniCI()` 只从 `vite-plugin-uni-mini-ci` 导出；`uni-mini-ci-cli` 只保留 CLI 入口和 `defineConfig()`。
 
 ## 安装
 
 ```bash
-pnpm add -D uni-mini-ci-cli
+pnpm add -D vite-plugin-uni-mini-ci
 ```
 
 同样需要安装目标平台 SDK：
@@ -25,7 +27,7 @@ pnpm add -D minidev
 ```ts
 import { defineConfig } from "vite";
 import uni from "@dcloudio/vite-plugin-uni";
-import { uniMiniCI } from "uni-mini-ci-cli";
+import { uniMiniCI } from "vite-plugin-uni-mini-ci";
 
 export default defineConfig({
   plugins: [
@@ -92,15 +94,15 @@ uniMiniCI({
   // 显式指定产物目录（优先级最高）
   projectPath: "dist/build/mp-weixin",
   // ...
-})
+});
 ```
 
 ### 构建模式 vs 开发模式
 
-| 模式 | 触发时机 | 允许的操作 |
-| --- | --- | --- |
-| `build` | `closeBundle` hook | `open`、`preview`、`upload` |
-| `serve` | `configureServer` hook | 仅 `open` |
+| 模式    | 触发时机               | 允许的操作                  |
+| ------- | ---------------------- | --------------------------- |
+| `build` | `closeBundle` hook     | `open`、`preview`、`upload` |
+| `serve` | `configureServer` hook | 仅 `open`                   |
 
 开发模式（`uni dev`）下只能执行 `--open` 操作。尝试在 serve 模式使用 `--preview` 或 `--upload` 会抛出错误。
 
@@ -133,13 +135,13 @@ interface UniMiniCIPluginOptions {
 
 ## 与 CLI 模式的区别
 
-| 特性 | CLI 模式 | 插件模式 |
-| --- | --- | --- |
-| 配置来源 | `minici.config.ts` | `uniMiniCI(options)` |
-| 平台指定 | `--platform` 参数 | `UNI_PLATFORM` 环境变量 |
-| 产物目录 | `--projectPath` 或配置 | `projectPath` 或 `UNI_OUTPUT_DIR` |
-| 触发方式 | 手动执行命令 | 构建完成自动触发 |
-| 开发模式 | `--dev` 标记 | 由 Vite `serve` 命令决定 |
+| 特性     | CLI 模式                        | 插件模式                                 |
+| -------- | ------------------------------- | ---------------------------------------- |
+| 配置来源 | `minici.config.ts`              | `uniMiniCI(options)`                     |
+| 平台指定 | `--platform` 参数               | `UNI_PLATFORM` 环境变量                  |
+| 产物目录 | `--projectPath` 或配置          | `projectPath` 或 `UNI_OUTPUT_DIR`        |
+| 触发方式 | 手动执行命令                    | 构建完成自动触发                         |
+| 开发模式 | `--dev` 标记                    | 由 Vite `serve` 命令决定                 |
 | 操作指定 | `--open`/`--preview`/`--upload` | `-- --open`/`-- --preview`/`-- --upload` |
 
 ## 多平台配置示例
@@ -149,7 +151,7 @@ interface UniMiniCIPluginOptions {
 ```ts
 import { defineConfig } from "vite";
 import uni from "@dcloudio/vite-plugin-uni";
-import { uniMiniCI } from "uni-mini-ci-cli";
+import { uniMiniCI } from "vite-plugin-uni-mini-ci";
 
 export default defineConfig({
   plugins: [

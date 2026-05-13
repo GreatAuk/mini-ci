@@ -1,15 +1,16 @@
 import { parseCliArgs } from "./command/parseArgs";
 import { loadMiniCIConfig } from "./config/loadConfig";
-import { runMiniCIWithConfig } from "./runMiniCIWithConfig";
+import { runMiniCIWithConfig } from "uni-mini-ci-core";
 
-import type { CliOptions, MiniCIConfig, MiniCIResult } from "./types";
+import type { CliOptions } from "./types";
+import type { MiniCIConfig, MiniCIResult } from "uni-mini-ci-core";
 
 export {
+  runMiniCIWithConfig,
   supportedOperations,
   supportedPlatforms,
   type AlipayClientType,
   type AlipayConfig,
-  type CliOptions,
   type JdConfig,
   type MiniCIOperation,
   type MiniCIConfig,
@@ -25,12 +26,10 @@ export {
   type RunMiniCIWithConfigOptions,
   type SwanConfig,
   type TTConfig,
-  type UniMiniCIPluginOptions,
   type WeappConfig,
-} from "./types";
+} from "uni-mini-ci-core";
 
-export { runMiniCIWithConfig } from "./runMiniCIWithConfig";
-export { uniMiniCI } from "./plugin/uniMiniCI";
+export type { CliOptions } from "./types";
 
 /**
  * 定义 minici 配置并保留完整类型推导。

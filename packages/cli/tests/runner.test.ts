@@ -6,7 +6,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 /** mock createCI 返回的执行记录 */
 const calls: Array<{ method: string }> = [];
 
-vi.mock("../src/ci/registry", () => ({
+vi.mock("../../core/src/ci/registry", () => ({
   createCI: (config: any) => ({
     init: vi.fn(),
     open: vi.fn().mockImplementation(() => {

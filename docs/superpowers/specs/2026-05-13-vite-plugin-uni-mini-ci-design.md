@@ -8,7 +8,7 @@
 
 ## 已确认决策
 
-- 包名保持 `uni-mini-ci-cli`。
+- 包名保持 `uni-mini-ci-cli`（CLI 包），插件拆分为 `vite-plugin-uni-mini-ci`。
 - CLI bin 继续保持 `minici`。
 - 新增主入口导出函数 `uniMiniCI()`。
 - Vite 插件对象的 `name` 为 `vite-plugin-uni-mini-ci`。
@@ -23,7 +23,7 @@
 
 ```ts
 import { defineConfig } from "vite";
-import { uniMiniCI } from "uni-mini-ci-cli";
+import { uniMiniCI } from "vite-plugin-uni-mini-ci";
 
 export default defineConfig({
   plugins: [

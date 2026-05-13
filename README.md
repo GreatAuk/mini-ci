@@ -68,9 +68,13 @@ minici --upload --platform mp-weixin --projectPath dist/build/mp-weixin
 
 如果项目已经通过 Vite 配置 uniapp 构建，可以直接在 `vite.config.ts` 中使用插件：
 
+```bash
+pnpm add -D vite-plugin-uni-mini-ci
+```
+
 ```ts
 import { defineConfig } from "vite";
-import { uniMiniCI } from "uni-mini-ci-cli";
+import { uniMiniCI } from "vite-plugin-uni-mini-ci";
 
 export default defineConfig({
   plugins: [
@@ -97,6 +101,18 @@ uni build -p mp-weixin -- --preview
 uni build -p mp-weixin -- --open
 uni dev -p mp-weixin -- --open
 ```
+
+## 包结构
+
+monorepo 拆分后，本项目包含三个独立发布的 npm 包：
+
+| 包名                      | 说明                                         |
+| ------------------------- | -------------------------------------------- |
+| `uni-mini-ci-cli`         | CLI 入口 (`minici` 命令) 和 `defineConfig()` |
+| `vite-plugin-uni-mini-ci` | Vite 插件 `uniMiniCI()`                      |
+| `uni-mini-ci-core`        | 共享运行时（平台 CI、配置归一化、公共类型）  |
+
+`uni-mini-ci-core` 是 CLI 和 Vite 插件共享的运行时包，承载平台 CI、配置归一化、公共类型和 `runMiniCIWithConfig()`。普通业务项目通常不需要直接安装它；安装 `uni-mini-ci-cli` 或 `vite-plugin-uni-mini-ci` 时会作为依赖安装。
 
 `--` 后只支持 `--open`、`--preview`、`--upload`。平台和产物目录由 uni 注入的 `UNI_PLATFORM`、`UNI_OUTPUT_DIR` 提供；如果需要覆盖产物目录，可以配置 `uniMiniCI({ projectPath: "..." })`。
 

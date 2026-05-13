@@ -1,0 +1,23 @@
+export { runMiniCIWithConfig } from "./runMiniCIWithConfig";
+export {
+  supportedOperations,
+  supportedPlatforms,
+  type AlipayClientType,
+  type AlipayConfig,
+  type JdConfig,
+  type MiniCIConfig,
+  type MiniCIDescContext,
+  type MiniCIDescFunction,
+  type MiniCIOperation,
+  type MiniCIPlatform,
+  type MiniCIResult,
+  type NormalizedMiniCIConfig,
+  type NormalizedMiniCIConfigBase,
+  type ParsedCliArgs,
+  type PlatformConfigMap,
+  type ProjectType,
+  type RunMiniCIWithConfigOptions,
+  type SwanConfig,
+  type TTConfig,
+  type WeappConfig,
+} from "./types";

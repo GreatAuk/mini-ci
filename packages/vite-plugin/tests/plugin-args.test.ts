@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { parsePluginArgs } from "../src/plugin/parsePluginArgs";
+import { parsePluginArgs } from "../src/parsePluginArgs";
 
 describe("parsePluginArgs", () => {
   test("没有透传分隔符时跳过", () => {

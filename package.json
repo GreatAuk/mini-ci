@@ -1,6 +1,6 @@
 {
-  "name": "uni-mini-ci-cli",
-  "version": "0.0.0",
+  "name": "uni-mini-ci",
+  "private": true,
   "description": "A CLI for mini program CI after uniapp builds.",
   "homepage": "https://github.com/author/library#readme",
   "bugs": {
@@ -12,43 +12,20 @@
     "type": "git",
     "url": "git+https://github.com/author/library.git"
   },
-  "bin": {
-    "minici": "./dist/cli.mjs"
-  },
-  "files": [
-    "dist"
+  "workspaces": [
+    "packages/*"
   ],
   "type": "module",
-  "exports": {
-    ".": "./dist/index.mjs",
-    "./cli": "./dist/cli.mjs",
-    "./package.json": "./package.json"
-  },
   "scripts": {
-    "build": "tsdown",
-    "dev": "tsdown --watch",
-    "test": "vitest",
-    "typecheck": "tsc --noEmit",
-    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
-    "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "release": "bumpp",
-    "prepublishOnly": "pnpm run build"
-  },
-  "dependencies": {
-    "axios": "^1.6.8",
-    "c12": "^3.3.0",
-    "cac": "^7.0.0",
-    "jimp": "^0.22.12",
-    "jsqr": "^1.4.0",
-    "minimist": "^1.2.8",
-    "picocolors": "^1.1.1",
-    "qrcode": "^1.5.3",
-    "resolve": "^1.22.8",
-    "shelljs": "^0.8.5",
-    "zod": "^4.1.0"
+    "build": "pnpm -r --if-present run build",
+    "dev": "pnpm -r --if-present run dev",
+    "test": "pnpm -r --if-present run test",
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "typecheck:test": "pnpm -r --if-present run typecheck:test",
+    "lint": "pnpm -r --if-present run lint",
+    "lint:fix": "pnpm -r --if-present run lint:fix",
+    "fmt": "pnpm -r --if-present run fmt",
+    "fmt:check": "pnpm -r --if-present run fmt:check"
   },
   "devDependencies": {
     "@types/minimist": "^1.2.5",
@@ -64,33 +41,5 @@
     "typescript": "^6.0.3",
     "vite": "^7.3.1",
     "vitest": "^4.1.5"
-  },
-  "peerDependencies": {
-    "jd-miniprogram-ci": "^1.0.5",
-    "minidev": "^2.1.5",
-    "miniprogram-ci": "^1.9.15",
-    "swan-toolkit": "^1.0.0",
-    "tt-ide-cli": "^0.1.25",
-    "vite": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
-  },
-  "peerDependenciesMeta": {
-    "jd-miniprogram-ci": {
-      "optional": true
-    },
-    "minidev": {
-      "optional": true
-    },
-    "miniprogram-ci": {
-      "optional": true
-    },
-    "swan-toolkit": {
-      "optional": true
-    },
-    "tt-ide-cli": {
-      "optional": true
-    },
-    "vite": {
-      "optional": true
-    }
   }
 }

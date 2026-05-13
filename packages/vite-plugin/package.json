@@ -1,0 +1,39 @@
+{
+  "name": "vite-plugin-uni-mini-ci",
+  "version": "0.0.0",
+  "description": "Vite plugin for mini program CI after uniapp builds.",
+  "license": "MIT",
+  "author": "greatauk11@gmail.com",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "minimist": "^1.2.8",
+    "uni-mini-ci-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "vite": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
+  }
+}

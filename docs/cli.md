@@ -1,4 +1,4 @@
-# CLI 使用文档
+1# CLI 使用文档
 
 `uni-mini-ci-cli` 提供 `minici` 命令，在 uniapp 小程序构建产物完成后执行打开开发者工具、上传预览版、上传体验版等操作。
 
@@ -10,13 +10,13 @@ pnpm add -D uni-mini-ci-cli
 
 按目标平台安装对应 SDK：
 
-| 平台 | SDK 包名 |
-| --- | --- |
-| 微信 | `miniprogram-ci` |
-| 支付宝 | `minidev` |
-| 京东 | `jd-miniprogram-ci` |
-| 百度 | `swan-toolkit` |
-| 抖音 | `tt-ide-cli` |
+| 平台   | SDK 包名            |
+| ------ | ------------------- |
+| 微信   | `miniprogram-ci`    |
+| 支付宝 | `minidev`           |
+| 京东   | `jd-miniprogram-ci` |
+| 百度   | `swan-toolkit`      |
+| 抖音   | `tt-ide-cli`        |
 
 ```bash
 # 示例：安装微信 SDK
@@ -51,16 +51,16 @@ export default defineConfig({
 
 ### 配置字段
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `version` | `string` | 发布版本号。默认读取 `package.json` 中的 `version` |
-| `desc` | `string \| (ctx) => string` | 发布描述。函数形式接收 `{ operation, platform, version, projectPath, cwd, packageJson }` |
-| `projectPath` | `string` | 构建产物目录。支持相对路径（相对 cwd），不填时为 `dist/build/<platform>` |
-| `mp-weixin` | `WeappConfig` | 微信小程序平台配置 |
-| `mp-alipay` | `AlipayConfig` | 支付宝小程序平台配置 |
-| `mp-baidu` | `SwanConfig` | 百度小程序平台配置 |
-| `mp-jd` | `JdConfig` | 京东小程序平台配置 |
-| `mp-toutiao` | `TTConfig` | 抖音小程序平台配置 |
+| 字段          | 类型                        | 说明                                                                                     |
+| ------------- | --------------------------- | ---------------------------------------------------------------------------------------- |
+| `version`     | `string`                    | 发布版本号。默认读取 `package.json` 中的 `version`                                       |
+| `desc`        | `string \| (ctx) => string` | 发布描述。函数形式接收 `{ operation, platform, version, projectPath, cwd, packageJson }` |
+| `projectPath` | `string`                    | 构建产物目录。支持相对路径（相对 cwd），不填时为 `dist/build/<platform>`                 |
+| `mp-weixin`   | `WeappConfig`               | 微信小程序平台配置                                                                       |
+| `mp-alipay`   | `AlipayConfig`              | 支付宝小程序平台配置                                                                     |
+| `mp-baidu`    | `SwanConfig`                | 百度小程序平台配置                                                                       |
+| `mp-jd`       | `JdConfig`                  | 京东小程序平台配置                                                                       |
+| `mp-toutiao`  | `TTConfig`                  | 抖音小程序平台配置                                                                       |
 
 ## 命令行用法
 
@@ -70,27 +70,27 @@ minici --<operation> --platform <platform> [options]
 
 ### 操作
 
-| 操作 | 说明 |
-| --- | --- |
-| `--open` | 打开开发者工具 |
+| 操作        | 说明                       |
+| ----------- | -------------------------- |
+| `--open`    | 打开开发者工具             |
 | `--preview` | 上传开发版并生成预览二维码 |
-| `--upload` | 上传体验版 |
+| `--upload`  | 上传体验版                 |
 
 三个操作互斥，每次只能指定一个。
 
 ### 选项
 
-| 选项 | 说明 |
-| --- | --- |
-| `--platform <platform>` | 目标平台（必填） |
-| `--projectPath <path>` | 构建产物目录 |
-| `--version <version>` | 发布版本号 |
-| `--desc <desc>` | 发布描述 |
-| `--config <path>` | 配置文件路径 |
-| `--cwd <path>` | 项目根目录 |
-| `--dev` | 标记为开发构建，默认 projectPath 使用 `dist/dev/<platform>` |
-| `-h, --help` | 显示帮助信息 |
-| `-v, --version` | 显示版本号 |
+| 选项                    | 说明                                                        |
+| ----------------------- | ----------------------------------------------------------- |
+| `--platform <platform>` | 目标平台（必填）                                            |
+| `--projectPath <path>`  | 构建产物目录                                                |
+| `--version <version>`   | 发布版本号                                                  |
+| `--desc <desc>`         | 发布描述                                                    |
+| `--config <path>`       | 配置文件路径                                                |
+| `--cwd <path>`          | 项目根目录                                                  |
+| `--dev`                 | 标记为开发构建，默认 projectPath 使用 `dist/dev/<platform>` |
+| `-h, --help`            | 显示帮助信息                                                |
+| `-v, --version`         | 显示版本号                                                  |
 
 ### 示例
 

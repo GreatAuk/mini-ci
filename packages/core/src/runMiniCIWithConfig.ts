@@ -1,6 +1,6 @@
 import { access } from "node:fs/promises";
 import { createCI } from "./ci/registry";
-import { loadPackageJson } from "./config/loadConfig";
+import { loadPackageJson } from "./config/loadPackageJson";
 import { normalizeConfig } from "./config/normalize";
 
 import type { MiniCIResult, RunMiniCIWithConfigOptions } from "./types";

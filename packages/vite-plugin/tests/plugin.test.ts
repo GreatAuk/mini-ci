@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { uniMiniCI } from "../src/plugin/uniMiniCI";
+import { uniMiniCI } from "../src/uniMiniCI";
 
 import type { Plugin, ResolvedConfig, ViteDevServer } from "vite";
 
@@ -12,7 +12,7 @@ const originalUniPlatform = process.env.UNI_PLATFORM;
 const originalUniOutputDir = process.env.UNI_OUTPUT_DIR;
 const tempDirs: string[] = [];
 
-vi.mock("../src/ci/registry", () => ({
+vi.mock("../../core/src/ci/registry", () => ({
   createCI: (config: any) => ({
     init: vi.fn(),
     open: vi.fn().mockImplementation(() => {

@@ -1,7 +1,7 @@
 import minimist from "minimist";
-import { supportedOperations } from "../types";
+import { supportedOperations } from "uni-mini-ci-core";
 
-import type { MiniCIOperation } from "../types";
+import type { MiniCIOperation } from "uni-mini-ci-core";
 
 /** Vite 插件参数解析结果 */
 export interface ParsedPluginArgs {
