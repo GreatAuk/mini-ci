@@ -89,6 +89,12 @@ export function uniMiniCI(options: UniMiniCIPluginOptions): Plugin {
       return;
     }
 
+    // h5 等非小程序平台无需执行 CI 操作，直接跳过
+    const rawPlatform = process.env.UNI_PLATFORM;
+    if (rawPlatform && !isPlatform(rawPlatform)) {
+      return;
+    }
+
     if (resolvedConfig?.command === "serve" && pluginArgs.operation !== "open") {
       throw new Error("preview/upload 只支持 build 模式");
     }

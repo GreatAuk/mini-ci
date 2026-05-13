@@ -245,4 +245,40 @@ describe("uniMiniCI", () => {
 
     await expect(runBuildPlugin(plugin, cwd)).rejects.toThrow("无法确定 projectPath");
   });
+
+  test("h5 平台 build 模式跳过 CI", async () => {
+    const { cwd, outputDir } = await createProject("build");
+    process.argv = ["node", "uni", "build", "--", "--upload"];
+    process.env.UNI_PLATFORM = "h5";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+
+    const plugin = uniMiniCI({
+      "mp-weixin": {
+        appid: "wx-appid",
+        privateKeyPath: "key/private.key",
+      },
+    });
+
+    await runBuildPlugin(plugin, cwd);
+
+    expect(calls).toEqual([]);
+  });
+
+  test("h5 平台 serve 模式传入 --open 跳过 CI", async () => {
+    const { cwd, outputDir } = await createProject("serve");
+    process.argv = ["node", "uni", "--", "--open"];
+    process.env.UNI_PLATFORM = "h5";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+
+    const plugin = uniMiniCI({
+      "mp-weixin": {
+        appid: "wx-appid",
+        privateKeyPath: "key/private.key",
+      },
+    });
+
+    await runServePlugin(plugin, cwd);
+
+    expect(calls).toEqual([]);
+  });
 });
