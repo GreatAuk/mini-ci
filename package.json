@@ -12,21 +12,18 @@
     "type": "git",
     "url": "git+https://github.com/author/library.git"
   },
-  "workspaces": [
-    "packages/*"
-  ],
   "type": "module",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "build": "pnpm -r --if-present run build",
-    "dev": "pnpm -r --if-present run dev",
-    "test": "pnpm -r --if-present run test",
-    "typecheck": "pnpm -r --if-present run typecheck",
-    "typecheck:test": "pnpm -r --if-present run typecheck:test",
-    "lint": "pnpm -r --if-present run lint",
-    "lint:fix": "pnpm -r --if-present run lint:fix",
-    "fmt": "pnpm -r --if-present run fmt",
-    "fmt:check": "pnpm -r --if-present run fmt:check"
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "typecheck:test": "turbo run typecheck:test",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "fmt": "turbo run fmt",
+    "fmt:check": "turbo run fmt:check"
   },
   "devDependencies": {
     "@types/minimist": "^1.2.5",
@@ -39,6 +36,7 @@
     "oxfmt": "^0.49.0",
     "oxlint": "^1.64.0",
     "tsdown": "^0.22.0",
+    "turbo": "latest",
     "typescript": "^6.0.3",
     "vite": "^7.3.1",
     "vitest": "^4.1.5"
