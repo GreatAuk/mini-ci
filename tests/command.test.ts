@@ -140,4 +140,3 @@ describe("parseCliArgs", () => {
     expect(result).not.toHaveProperty("dev");
   });
 });
-

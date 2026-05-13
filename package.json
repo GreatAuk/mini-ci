@@ -43,6 +43,7 @@
     "cac": "^7.0.0",
     "jimp": "^0.22.12",
     "jsqr": "^1.4.0",
+    "minimist": "^1.2.8",
     "picocolors": "^1.1.1",
     "qrcode": "^1.5.3",
     "resolve": "^1.22.8",
@@ -50,6 +51,7 @@
     "zod": "^4.1.0"
   },
   "devDependencies": {
+    "@types/minimist": "^1.2.5",
     "@types/node": "^25.6.2",
     "@types/qrcode": "^1.5.6",
     "@types/resolve": "^1.20.6",
@@ -60,6 +62,7 @@
     "oxlint": "^1.64.0",
     "tsdown": "^0.22.0",
     "typescript": "^6.0.3",
+    "vite": "^7.3.1",
     "vitest": "^4.1.5"
   },
   "peerDependencies": {
@@ -67,7 +70,8 @@
     "minidev": "^2.1.5",
     "miniprogram-ci": "^1.9.15",
     "swan-toolkit": "^1.0.0",
-    "tt-ide-cli": "^0.1.25"
+    "tt-ide-cli": "^0.1.25",
+    "vite": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
   },
   "peerDependenciesMeta": {
     "jd-miniprogram-ci": {
@@ -83,6 +87,9 @@
       "optional": true
     },
     "tt-ide-cli": {
+      "optional": true
+    },
+    "vite": {
       "optional": true
     }
   }

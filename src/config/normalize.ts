@@ -53,7 +53,6 @@ function normalizeProjectPath(cwd: string, projectPath: string): string {
   return path.join(cwd, projectPath);
 }
 
-
 /**
  * 解析发布描述。
  *

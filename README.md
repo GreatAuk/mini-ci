@@ -64,6 +64,48 @@ minici --upload --platform mp-weixin --projectPath dist/build/mp-weixin
 命令行参数 > minici.config > package.json > 自动默认值
 ```
 
+## Vite 插件
+
+如果项目已经通过 Vite 配置 uniapp 构建，可以直接在 `vite.config.ts` 中使用插件：
+
+```ts
+import { defineConfig } from "vite";
+import { uniMiniCI } from "uni-mini-ci-cli";
+
+export default defineConfig({
+  plugins: [
+    uniMiniCI({
+      version: "1.0.0",
+      desc: ({ platform, version }) => `${platform} ${version} 自动构建`,
+      "mp-weixin": {
+        appid: "微信小程序 appid",
+        privateKeyPath: "key/private.key",
+        robot: 1,
+      },
+    }),
+  ],
+});
+```
+
+插件模式下不读取 `minici.config.ts`。配置直接写在 `uniMiniCI(options)` 中。
+
+通过 uni 命令透传参数触发操作：
+
+```bash
+uni build -p mp-weixin -- --upload
+uni build -p mp-weixin -- --preview
+uni build -p mp-weixin -- --open
+uni dev -p mp-weixin -- --open
+```
+
+`--` 后只支持 `--open`、`--preview`、`--upload`。平台和产物目录由 uni 注入的 `UNI_PLATFORM`、`UNI_OUTPUT_DIR` 提供；如果需要覆盖产物目录，可以配置 `uniMiniCI({ projectPath: "..." })`。
+
+插件模式配置优先级：
+
+```
+插件操作参数 > uniMiniCI(options) > package.json > 自动默认值
+```
+
 ## 与 uniapp 脚本配合
 
 ```json

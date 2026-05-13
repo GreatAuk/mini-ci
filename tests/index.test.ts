@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, test } from "vitest";
-import { defineConfig, supportedOperations, supportedPlatforms } from "../src/index";
+import { defineConfig, supportedOperations, supportedPlatforms, uniMiniCI } from "../src/index";
 
 import type { NormalizedMiniCIConfig, PlatformConfigMap } from "../src/index";
 
@@ -58,5 +58,35 @@ describe("public api", () => {
 
     expectTypeOf<WeixinConfig["platform"]>().toEqualTypeOf<"mp-weixin">();
     expectTypeOf<WeixinConfig["platformConfig"]>().toEqualTypeOf<PlatformConfigMap["mp-weixin"]>();
+  });
+
+  test("exports uniMiniCI vite plugin factory", () => {
+    const plugin = uniMiniCI({
+      "mp-weixin": {
+        appid: "wx-appid",
+        privateKeyPath: "key/private.key",
+      },
+    });
+
+    expect(plugin.name).toBe("vite-plugin-uni-mini-ci");
+  });
+
+  test("uniMiniCI options keep config shape types", () => {
+    const plugin = uniMiniCI({
+      version: "1.0.0",
+      desc: ({ platform, version }) => {
+        expectTypeOf(platform).toEqualTypeOf<
+          "mp-weixin" | "mp-alipay" | "mp-baidu" | "mp-jd" | "mp-toutiao"
+        >();
+        expectTypeOf(version).toEqualTypeOf<string>();
+        return `${platform}-${version}`;
+      },
+      "mp-weixin": {
+        appid: "wx-appid",
+        privateKeyPath: "key/private.key",
+      },
+    });
+
+    expect(plugin.name).toBe("vite-plugin-uni-mini-ci");
   });
 });

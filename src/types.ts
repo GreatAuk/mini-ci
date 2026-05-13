@@ -232,3 +232,16 @@ export interface MiniCIResult {
   /** 二维码内容 */
   qrCodeContent?: string;
 }
+
+/** 共享 minici 执行入口选项 */
+export interface RunMiniCIWithConfigOptions {
+  /** 已解析的运行参数 */
+  args: ParsedCliArgs;
+  /** 当前工作目录 */
+  cwd: string;
+  /** 已加载或直接传入的 minici 配置 */
+  config: MiniCIConfig;
+}
+
+/** Vite 插件配置结构 */
+export interface UniMiniCIPluginOptions extends MiniCIConfig {}
