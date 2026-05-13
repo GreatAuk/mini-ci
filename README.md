@@ -1,88 +1,119 @@
-# uni-mini-ci-cli
+# uni-mini-ci
 
-`uni-mini-ci-cli` 是一个面向 uniapp 小程序构建产物的持续集成 CLI。它参考 Taro `@tarojs/plugin-mini-ci` 的平台实现，在 `uni build -p <platform>` 完成后执行打开开发者工具、上传开发版预览、上传体验版等操作。
+uniapp 小程序 CI 工具集，在 `uni build` 完成后自动执行打开开发者工具、上传开发版预览、上传体验版等操作。提供 **CLI** 和 **Vite 插件**两种使用方式，底层共享同一套平台 CI 运行时。
 
-## 安装
+## 包结构
+
+本仓库为 monorepo，包含三个独立发布的 npm 包：
+
+| 包名                      | 说明                                       |
+| ------------------------- | ------------------------------------------ |
+| `uni-mini-ci-cli`         | CLI 命令 `minici` 和 `defineConfig()`      |
+| `vite-plugin-uni-mini-ci` | Vite 插件 `uniMiniCI()`                    |
+| `uni-mini-ci-core`        | 共享运行时（内部依赖，通常不需要直接安装） |
+
+`uni-mini-ci-core` 承载平台 CI 实现、配置归一化、公共类型和 `runMiniCIWithConfig()`，由 CLI 和 Vite 插件各自作为普通依赖引入，不需要手动安装。
+
+## 支持的平台
+
+| 平台         | SDK 包名            |
+| ------------ | ------------------- |
+| `mp-weixin`  | `miniprogram-ci`    |
+| `mp-alipay`  | `minidev`           |
+| `mp-baidu`   | `swan-toolkit`      |
+| `mp-jd`      | `jd-miniprogram-ci` |
+| `mp-toutiao` | `tt-ide-cli`        |
+
+按需安装目标平台 SDK：
+
+```bash
+pnpm add -D miniprogram-ci   # 微信
+pnpm add -D minidev           # 支付宝
+pnpm add -D swan-toolkit      # 百度
+pnpm add -D jd-miniprogram-ci # 京东
+pnpm add -D tt-ide-cli        # 抖音
+```
+
+## 支持的操作
+
+两种使用方式均支持以下三个操作，每次只能指定其中一个：
+
+| 操作        | 说明                       |
+| ----------- | -------------------------- |
+| `--open`    | 打开开发者工具             |
+| `--preview` | 上传开发版并生成预览二维码 |
+| `--upload`  | 上传体验版                 |
+
+## 共享配置字段
+
+CLI 的 `minici.config.ts` 和 Vite 插件的 `uniMiniCI(options)` 使用同一套配置结构：
+
+| 字段          | 类型                        | 说明                                                                                     |
+| ------------- | --------------------------- | ---------------------------------------------------------------------------------------- |
+| `version`     | `string`                    | 发布版本号，默认读取 `package.json` 中的 `version`                                       |
+| `desc`        | `string \| (ctx) => string` | 发布描述，函数形式接收 `{ operation, platform, version, projectPath, cwd, packageJson }` |
+| `projectPath` | `string`                    | 构建产物目录，支持相对路径                                                               |
+| `mp-weixin`   | `WeappConfig`               | 微信小程序平台配置                                                                       |
+| `mp-alipay`   | `AlipayConfig`              | 支付宝小程序平台配置                                                                     |
+| `mp-baidu`    | `SwanConfig`                | 百度小程序平台配置                                                                       |
+| `mp-jd`       | `JdConfig`                  | 京东小程序平台配置                                                                       |
+| `mp-toutiao`  | `TTConfig`                  | 抖音小程序平台配置                                                                       |
+
+各平台配置字段的详细说明见对应使用文档。
+
+## CLI 使用
 
 ```bash
 pnpm add -D uni-mini-ci-cli
 ```
 
-按平台安装对应 SDK：
-
-```bash
-# 微信
-pnpm add -D miniprogram-ci
-# 支付宝
-pnpm add -D minidev
-# 京东
-pnpm add -D jd-miniprogram-ci
-# 百度
-pnpm add -D swan-toolkit
-# 抖音
-pnpm add -D tt-ide-cli
-```
-
-## 配置
-
-创建 `minici.config.ts`：
+在项目根目录创建 `minici.config.ts`：
 
 ```ts
 import { defineConfig } from "uni-mini-ci-cli";
 
 export default defineConfig({
   version: "1.0.0",
-  desc: ({ platform, version }) => `${platform} ${version} 自动构建`,
-  projectPath: "dist/build/mp-weixin",
+  desc: ({ platform, version }) => `${platform} v${version} 自动构建`,
   "mp-weixin": {
-    appid: "微信小程序 appid",
+    appid: "wx1234567890abcdef",
     privateKeyPath: "key/private.key",
     robot: 1,
   },
 });
 ```
 
-## 命令
+构建后执行 CI 操作：
 
 ```bash
-minici --open --platform mp-weixin
+minici --upload --platform mp-weixin
 minici --preview --platform mp-weixin
-minici --upload --platform mp-weixin --projectPath dist/build/mp-weixin
+minici --open   --platform mp-weixin --dev
 ```
 
-支持的平台：
+详细用法、参数说明和平台配置 → [docs/cli.md](docs/cli.md)
 
-- `mp-weixin`
-- `mp-alipay`
-- `mp-baidu`
-- `mp-jd`
-- `mp-toutiao`
-
-参数优先级：
-
-```
-命令行参数 > minici.config > package.json > 自动默认值
-```
-
-## Vite 插件
-
-如果项目已经通过 Vite 配置 uniapp 构建，可以直接在 `vite.config.ts` 中使用插件：
+## Vite 插件使用
 
 ```bash
 pnpm add -D vite-plugin-uni-mini-ci
 ```
 
+在 `vite.config.ts` 中注册插件：
+
 ```ts
 import { defineConfig } from "vite";
+import uni from "@dcloudio/vite-plugin-uni";
 import { uniMiniCI } from "vite-plugin-uni-mini-ci";
 
 export default defineConfig({
   plugins: [
+    uni(),
     uniMiniCI({
       version: "1.0.0",
-      desc: ({ platform, version }) => `${platform} ${version} 自动构建`,
+      desc: ({ platform, version }) => `${platform} v${version} 自动构建`,
       "mp-weixin": {
-        appid: "微信小程序 appid",
+        appid: "wx1234567890abcdef",
         privateKeyPath: "key/private.key",
         robot: 1,
       },
@@ -91,47 +122,17 @@ export default defineConfig({
 });
 ```
 
-插件模式下不读取 `minici.config.ts`。配置直接写在 `uniMiniCI(options)` 中。
-
-通过 uni 命令透传参数触发操作：
+通过 `--` 向插件透传操作参数，构建完成后自动执行：
 
 ```bash
 uni build -p mp-weixin -- --upload
 uni build -p mp-weixin -- --preview
-uni build -p mp-weixin -- --open
-uni dev -p mp-weixin -- --open
+uni dev   -p mp-weixin -- --open
 ```
 
-## 包结构
+插件模式不读取 `minici.config.ts`，平台和产物目录由 `UNI_PLATFORM`、`UNI_OUTPUT_DIR` 自动注入。
 
-monorepo 拆分后，本项目包含三个独立发布的 npm 包：
-
-| 包名                      | 说明                                         |
-| ------------------------- | -------------------------------------------- |
-| `uni-mini-ci-cli`         | CLI 入口 (`minici` 命令) 和 `defineConfig()` |
-| `vite-plugin-uni-mini-ci` | Vite 插件 `uniMiniCI()`                      |
-| `uni-mini-ci-core`        | 共享运行时（平台 CI、配置归一化、公共类型）  |
-
-`uni-mini-ci-core` 是 CLI 和 Vite 插件共享的运行时包，承载平台 CI、配置归一化、公共类型和 `runMiniCIWithConfig()`。普通业务项目通常不需要直接安装它；安装 `uni-mini-ci-cli` 或 `vite-plugin-uni-mini-ci` 时会作为依赖安装。
-
-`--` 后只支持 `--open`、`--preview`、`--upload`。平台和产物目录由 uni 注入的 `UNI_PLATFORM`、`UNI_OUTPUT_DIR` 提供；如果需要覆盖产物目录，可以配置 `uniMiniCI({ projectPath: "..." })`。
-
-插件模式配置优先级：
-
-```
-插件操作参数 > uniMiniCI(options) > package.json > 自动默认值
-```
-
-## 与 uniapp 脚本配合
-
-```json
-{
-  "scripts": {
-    "build:mp-weixin": "uni build -p mp-weixin",
-    "ci:mp-weixin": "minici --upload --platform mp-weixin --projectPath dist/build/mp-weixin"
-  }
-}
-```
+详细用法、构建模式差异和多平台配置 → [docs/vite-plugin.md](docs/vite-plugin.md)
 
 ## 开发
 
