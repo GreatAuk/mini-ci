@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { WeappCI } from "../src/ci/WeappCI";
 import { AlipayCI } from "../src/ci/AlipayCI";
+import { SwanCI } from "../src/ci/SwanCI";
+import { TTCI } from "../src/ci/TTCI";
+import { JdCI } from "../src/ci/JdCI";
 
 import type { NormalizedMiniCIConfig } from "../src/types";
 
@@ -9,6 +12,13 @@ vi.mock("../src/utils/qrcode", () => ({
   readQrcodeImageContent: vi.fn().mockResolvedValue("mock-qr-content"),
   printQrcode2Terminal: vi.fn().mockResolvedValue(undefined),
   generateQrcodeImageFile: vi.fn().mockResolvedValue(undefined),
+}));
+
+/** mock shelljs，避免真实命令行调用 */
+vi.mock("shelljs", () => ({
+  default: {
+    exec: vi.fn(),
+  },
 }));
 
 /**
@@ -137,5 +147,158 @@ describe("AlipayCI - qrcodePath 路径选取", () => {
     const result = await ci.preview();
 
     expect(result.qrCodeLocalPath).toBe("/custom/alipay-preview.png");
+  });
+});
+
+/**
+ * 创建百度平台测试配置。
+ *
+ * @param qrcodePath 二维码图片保存路径配置
+ * @returns 归一化后的百度平台配置
+ */
+function makeSwanConfig(
+  qrcodePath?: NormalizedMiniCIConfig["qrcodePath"],
+): NormalizedMiniCIConfig<"mp-baidu"> {
+  return {
+    operation: "preview",
+    platform: "mp-baidu",
+    cwd: "/cwd",
+    projectPath: "/project",
+    version: "1.0.0",
+    desc: "test",
+    packageJson: {},
+    platformConfig: {
+      token: "swan-token",
+    },
+    qrcodePath,
+  };
+}
+
+/**
+ * 创建字节平台测试配置。
+ *
+ * @param qrcodePath 二维码图片保存路径配置
+ * @returns 归一化后的字节平台配置
+ */
+function makeTTConfig(
+  qrcodePath?: NormalizedMiniCIConfig["qrcodePath"],
+): NormalizedMiniCIConfig<"mp-toutiao"> {
+  return {
+    operation: "preview",
+    platform: "mp-toutiao",
+    cwd: "/cwd",
+    projectPath: "/project",
+    version: "1.0.0",
+    desc: "test",
+    packageJson: {},
+    platformConfig: {
+      email: "test@example.com",
+      password: "test-password",
+    },
+    qrcodePath,
+  };
+}
+
+/**
+ * 创建京东平台测试配置。
+ *
+ * @param qrcodePath 二维码图片保存路径配置
+ * @returns 归一化后的京东平台配置
+ */
+function makeJdConfig(
+  qrcodePath?: NormalizedMiniCIConfig["qrcodePath"],
+): NormalizedMiniCIConfig<"mp-jd"> {
+  return {
+    operation: "preview",
+    platform: "mp-jd",
+    cwd: "/cwd",
+    projectPath: "/project",
+    version: "1.0.0",
+    desc: "test",
+    packageJson: {},
+    platformConfig: {
+      privateKey: "jd-private-key",
+    },
+    qrcodePath,
+  };
+}
+
+describe("SwanCI - qrcodePath 路径选取", () => {
+  it("preview() 未配置 qrcodePath 时使用默认路径 projectPath/preview.png", async () => {
+    const shell = await import("shelljs");
+    vi.mocked(shell.default.exec as any).mockImplementation((_cmd: string, cb: Function) => {
+      cb(0, JSON.stringify({ list: [{ url: "mock-swan-url" }] }), null);
+    });
+
+    const ci = new SwanCI(makeSwanConfig());
+    (ci as any).swanBin = "/mock/swan";
+
+    const result = await ci.preview();
+
+    expect(result.qrCodeLocalPath).toBe("/project/preview.png");
+  });
+
+  it("preview() 配置 qrcodePath.preview 时使用自定义路径", async () => {
+    const shell = await import("shelljs");
+    vi.mocked(shell.default.exec as any).mockImplementation((_cmd: string, cb: Function) => {
+      cb(0, JSON.stringify({ list: [{ url: "mock-swan-url" }] }), null);
+    });
+
+    const ci = new SwanCI(makeSwanConfig({ preview: "/custom/swan-preview.png" }));
+    (ci as any).swanBin = "/mock/swan";
+
+    const result = await ci.preview();
+
+    expect(result.qrCodeLocalPath).toBe("/custom/swan-preview.png");
+  });
+});
+
+describe("TTCI - qrcodePath 路径选取", () => {
+  it("preview() 未配置 qrcodePath 时使用默认路径 projectPath/preview.png", async () => {
+    const ci = new TTCI(makeTTConfig());
+    (ci as any).tt = {
+      loginByEmail: vi.fn().mockResolvedValue(undefined),
+      preview: vi.fn().mockResolvedValue({ shortUrl: "mock-tt-url", expireTime: 9999999999 }),
+    };
+
+    const result = await ci.preview();
+
+    expect(result.qrCodeLocalPath).toBe("/project/preview.png");
+  });
+
+  it("preview() 配置 qrcodePath.preview 时使用自定义路径", async () => {
+    const ci = new TTCI(makeTTConfig({ preview: "/custom/tt-preview.png" }));
+    (ci as any).tt = {
+      loginByEmail: vi.fn().mockResolvedValue(undefined),
+      preview: vi.fn().mockResolvedValue({ shortUrl: "mock-tt-url", expireTime: 9999999999 }),
+    };
+
+    const result = await ci.preview();
+
+    expect(result.qrCodeLocalPath).toBe("/custom/tt-preview.png");
+  });
+});
+
+describe("JdCI - qrcodePath 路径选取", () => {
+  it("preview() 未配置 qrcodePath 时使用默认路径 projectPath/preview.jpg", async () => {
+    const ci = new JdCI(makeJdConfig());
+    (ci as any).jdCi = {
+      preview: vi.fn().mockResolvedValue({ imgUrl: "https://qr.example.com/jd.jpg" }),
+    };
+
+    const result = await ci.preview();
+
+    expect(result.qrCodeLocalPath).toBe("/project/preview.jpg");
+  });
+
+  it("preview() 配置 qrcodePath.preview 时使用自定义路径", async () => {
+    const ci = new JdCI(makeJdConfig({ preview: "/custom/jd-preview.jpg" }));
+    (ci as any).jdCi = {
+      preview: vi.fn().mockResolvedValue({ imgUrl: "https://qr.example.com/jd.jpg" }),
+    };
+
+    const result = await ci.preview();
+
+    expect(result.qrCodeLocalPath).toBe("/custom/jd-preview.jpg");
   });
 });
