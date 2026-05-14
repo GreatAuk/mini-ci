@@ -27,7 +27,8 @@ export class JdCI extends BaseCI<"mp-jd"> {
 
   async preview() {
     const { privateKey, ignores } = this.config.platformConfig;
-    const previewQrcodePath = path.join(this.config.projectPath, "preview.jpg");
+    const previewQrcodePath =
+      this.config.qrcodePath?.preview ?? path.join(this.config.projectPath, "preview.jpg");
 
     try {
       console.log(`本次上传版本号为："${this.config.version}"，上传描述为："${this.config.desc}"`);
@@ -58,7 +59,8 @@ export class JdCI extends BaseCI<"mp-jd"> {
 
   async upload() {
     const { privateKey, robot, ignores } = this.config.platformConfig;
-    const uploadQrcodePath = path.join(this.config.projectPath, "upload.jpg");
+    const uploadQrcodePath =
+      this.config.qrcodePath?.upload ?? path.join(this.config.projectPath, "upload.jpg");
 
     try {
       console.log(`本次上传版本号为："${this.config.version}"，上传描述为："${this.config.desc}"`);

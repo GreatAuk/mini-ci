@@ -49,7 +49,8 @@ export class TTCI extends BaseCI<"mp-toutiao"> {
     await this.beforeCheck();
     try {
       console.log("start 预览抖音小程序");
-      const previewQrcodePath = path.join(this.config.projectPath, "preview.png");
+      const previewQrcodePath =
+        this.config.qrcodePath?.preview ?? path.join(this.config.projectPath, "preview.png");
       const ttConfig = this.config.platformConfig;
 
       const previewResult = await this.tt.preview({
@@ -93,7 +94,8 @@ export class TTCI extends BaseCI<"mp-toutiao"> {
     try {
       console.log("start 上传代码到抖音开放平台后台");
       console.log(`本次上传版本号为："${this.config.version}"，上传描述为："${this.config.desc}"`);
-      const uploadQrcodePath = path.join(this.config.projectPath, "upload.png");
+      const uploadQrcodePath =
+        this.config.qrcodePath?.upload ?? path.join(this.config.projectPath, "upload.png");
 
       const uploadResult = await this.tt.upload({
         project: {

@@ -42,7 +42,8 @@ export class SwanCI extends BaseCI<"mp-baidu"> {
   }
 
   async preview() {
-    const previewQrcodePath = path.join(this.config.projectPath, "preview.png");
+    const previewQrcodePath =
+      this.config.qrcodePath?.preview ?? path.join(this.config.projectPath, "preview.png");
     const swanConfig = this.config.platformConfig;
     console.log("start 预览百度小程序");
 
@@ -93,7 +94,8 @@ export class SwanCI extends BaseCI<"mp-baidu"> {
             try {
               const stdoutRes = JSON.parse(stdout) as UploadResponse;
               const qrContent = stdoutRes.schemeUrl;
-              const uploadQrcodePath = path.join(this.config.projectPath, "upload.png");
+              const uploadQrcodePath =
+                this.config.qrcodePath?.upload ?? path.join(this.config.projectPath, "upload.png");
 
               await printQrcode2Terminal(qrContent);
               await generateQrcodeImageFile(uploadQrcodePath, qrContent);

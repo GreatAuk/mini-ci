@@ -93,7 +93,8 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
   async preview() {
     try {
       console.log("start 上传开发版代码到微信后台并预览");
-      const previewQrcodePath = path.join(this.config.projectPath, "preview.jpg");
+      const previewQrcodePath =
+        this.config.qrcodePath?.preview ?? path.join(this.config.projectPath, "preview.jpg");
       const weappConfig = this.config.platformConfig;
 
       const uploadResult = await this.ci.preview({
@@ -164,7 +165,8 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
         console.log(`上传成功 ${new Date().toLocaleString()} ${extInfo}`);
       }
 
-      const uploadQrcodePath = path.join(this.config.projectPath, "upload.png");
+      const uploadQrcodePath =
+        this.config.qrcodePath?.upload ?? path.join(this.config.projectPath, "upload.png");
       let qrContent: string | undefined;
       try {
         qrContent = `https://open.weixin.qq.com/sns/getexpappinfo?appid=${weappConfig.appid}#wechat-redirect`;

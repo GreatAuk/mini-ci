@@ -74,7 +74,8 @@ export class AlipayCI extends BaseCI<"mp-alipay"> {
         autoPush: false,
       });
 
-      const previewQrcodePath = path.join(this.config.projectPath, "preview.png");
+      const previewQrcodePath =
+        this.config.qrcodePath?.preview ?? path.join(this.config.projectPath, "preview.png");
       const qrcodeUrl = previewResult.qrcodeUrl;
       const qrcodeContent = await readQrcodeImageContent(qrcodeUrl);
       await generateQrcodeImageFile(previewQrcodePath, qrcodeContent);
@@ -118,7 +119,8 @@ export class AlipayCI extends BaseCI<"mp-alipay"> {
 
       const qrcodeUrl = result.experienceQrCodeUrl!;
       const qrcodeContent = await readQrcodeImageContent(qrcodeUrl);
-      const uploadQrcodePath = path.join(this.config.projectPath, "upload.png");
+      const uploadQrcodePath =
+        this.config.qrcodePath?.upload ?? path.join(this.config.projectPath, "upload.png");
       await printQrcode2Terminal(qrcodeContent);
       await generateQrcodeImageFile(uploadQrcodePath, qrcodeContent);
       console.log(
