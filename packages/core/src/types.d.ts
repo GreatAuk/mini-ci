@@ -99,6 +99,21 @@ export interface MiniCIConfig {
     desc?: string | MiniCIDescFunction;
     /** 小程序构建产物目录 */
     projectPath?: string;
+    /** 二维码图片保存路径 */
+    qrcodePath?: {
+        /**
+         * preview 操作的二维码图片保存路径。
+         * @example "./output/preview.png"
+         * @example "/tmp/my-preview.jpg"
+         */
+        preview?: string;
+        /**
+         * upload 操作的二维码图片保存路径。
+         * @example "./output/upload.png"
+         * @example "/tmp/my-upload.jpg"
+         */
+        upload?: string;
+    };
     /** 微信小程序配置 */
     "mp-weixin"?: WeappConfig;
     /** 支付宝小程序配置 */
@@ -156,6 +171,13 @@ export interface NormalizedMiniCIConfigBase {
     desc: string;
     /** 当前项目 package.json 内容 */
     packageJson: Record<string, unknown>;
+    /** 二维码图片保存路径（已解析为绝对路径） */
+    qrcodePath?: {
+        /** preview 操作的二维码图片保存路径 */
+        preview?: string;
+        /** upload 操作的二维码图片保存路径 */
+        upload?: string;
+    };
 }
 /** 规范化后的 minici 执行配置 */
 export type NormalizedMiniCIConfig<P extends MiniCIPlatform = MiniCIPlatform> = P extends MiniCIPlatform ? NormalizedMiniCIConfigBase & {

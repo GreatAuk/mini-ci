@@ -5,6 +5,10 @@ export declare const miniciConfigSchema: z.ZodObject<{
     version: z.ZodOptional<z.ZodString>;
     desc: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodCustom<MiniCIDescFunction, MiniCIDescFunction>]>>;
     projectPath: z.ZodOptional<z.ZodString>;
+    qrcodePath: z.ZodOptional<z.ZodObject<{
+        preview: z.ZodOptional<z.ZodString>;
+        upload: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>>;
     "mp-weixin": z.ZodOptional<z.ZodObject<{
         appid: z.ZodString;
         privateKeyPath: z.ZodString;
