@@ -1,5 +1,5 @@
 {
-  "name": "uni-mini-ci",
+  "name": "mini-ci",
   "private": true,
   "description": "A CLI for mini program CI after uniapp builds.",
   "homepage": "https://github.com/author/library#readme",
