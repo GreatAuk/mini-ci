@@ -40,6 +40,12 @@ export default defineConfig({
   // 构建产物目录，未指定时默认为 dist/build/<platform>
   projectPath: "dist/build/mp-weixin",
 
+  // 二维码图片保存路径（可选，未配置时各平台使用默认路径）
+  qrcodePath: {
+    preview: "./output/preview.png",  // preview 操作的二维码路径
+    upload: "./output/upload.png",    // upload 操作的二维码路径
+  },
+
   // 各平台私有配置
   "mp-weixin": {
     appid: "wx1234567890abcdef",
@@ -56,6 +62,7 @@ export default defineConfig({
 | `version`     | `string`                    | 发布版本号。默认读取 `package.json` 中的 `version`                                       |
 | `desc`        | `string \| (ctx) => string` | 发布描述。函数形式接收 `{ operation, platform, version, projectPath, cwd, packageJson }` |
 | `projectPath` | `string`                    | 构建产物目录。支持相对路径（相对 cwd），不填时为 `dist/build/<platform>`                 |
+| `qrcodePath`  | `{ preview?: string; upload?: string }` | 二维码图片保存路径。支持相对路径（相对 cwd）或绝对路径，不填时各平台使用默认路径（`<projectPath>/preview.jpg` 等） |
 | `mp-weixin`   | `WeappConfig`               | 微信小程序平台配置                                                                       |
 | `mp-alipay`   | `AlipayConfig`              | 支付宝小程序平台配置                                                                     |
 | `mp-baidu`    | `SwanConfig`                | 百度小程序平台配置                                                                       |

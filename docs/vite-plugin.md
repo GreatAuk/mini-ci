@@ -118,6 +118,13 @@ interface UniMiniCIPluginOptions {
   desc?: string | ((ctx) => string);
   /** 构建产物目录（优先于 UNI_OUTPUT_DIR） */
   projectPath?: string;
+  /** 二维码图片保存路径（可选，未配置时各平台使用默认路径） */
+  qrcodePath?: {
+    /** preview 操作的二维码图片保存路径 */
+    preview?: string;
+    /** upload 操作的二维码图片保存路径 */
+    upload?: string;
+  };
   /** 微信小程序配置 */
   "mp-weixin"?: WeappConfig;
   /** 支付宝小程序配置 */
