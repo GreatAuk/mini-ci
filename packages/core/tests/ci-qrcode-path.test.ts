@@ -148,6 +148,34 @@ describe("AlipayCI - qrcodePath 路径选取", () => {
 
     expect(result.qrCodeLocalPath).toBe("/custom/alipay-preview.png");
   });
+
+  it("upload() 未配置 qrcodePath 时使用默认路径 projectPath/upload.png", async () => {
+    const ci = new AlipayCI(makeAlipayConfig());
+    (ci as any).minidev = {
+      minidev: {
+        app: { getUploadedVersion: vi.fn().mockResolvedValue("0.9.0") },
+        upload: vi.fn().mockResolvedValue({ experienceQrCodeUrl: "https://qr.example.com/exp.png" }),
+      },
+    };
+
+    const result = await ci.upload();
+
+    expect(result.qrCodeLocalPath).toBe("/project/upload.png");
+  });
+
+  it("upload() 配置 qrcodePath.upload 时使用自定义路径", async () => {
+    const ci = new AlipayCI(makeAlipayConfig({ upload: "/custom/alipay-upload.png" }));
+    (ci as any).minidev = {
+      minidev: {
+        app: { getUploadedVersion: vi.fn().mockResolvedValue("0.9.0") },
+        upload: vi.fn().mockResolvedValue({ experienceQrCodeUrl: "https://qr.example.com/exp.png" }),
+      },
+    };
+
+    const result = await ci.upload();
+
+    expect(result.qrCodeLocalPath).toBe("/custom/alipay-upload.png");
+  });
 });
 
 /**
@@ -251,6 +279,34 @@ describe("SwanCI - qrcodePath 路径选取", () => {
 
     expect(result.qrCodeLocalPath).toBe("/custom/swan-preview.png");
   });
+
+  it("upload() 未配置 qrcodePath 时使用默认路径 projectPath/upload.png", async () => {
+    const shell = await import("shelljs");
+    vi.mocked(shell.default.exec as any).mockImplementation((_cmd: string, cb: Function) => {
+      cb(0, JSON.stringify({ schemeUrl: "mock-swan-scheme" }), null);
+    });
+
+    const ci = new SwanCI(makeSwanConfig());
+    (ci as any).swanBin = "/mock/swan";
+
+    const result = await ci.upload();
+
+    expect(result.qrCodeLocalPath).toBe("/project/upload.png");
+  });
+
+  it("upload() 配置 qrcodePath.upload 时使用自定义路径", async () => {
+    const shell = await import("shelljs");
+    vi.mocked(shell.default.exec as any).mockImplementation((_cmd: string, cb: Function) => {
+      cb(0, JSON.stringify({ schemeUrl: "mock-swan-scheme" }), null);
+    });
+
+    const ci = new SwanCI(makeSwanConfig({ upload: "/custom/swan-upload.png" }));
+    (ci as any).swanBin = "/mock/swan";
+
+    const result = await ci.upload();
+
+    expect(result.qrCodeLocalPath).toBe("/custom/swan-upload.png");
+  });
 });
 
 describe("TTCI - qrcodePath 路径选取", () => {
@@ -277,6 +333,30 @@ describe("TTCI - qrcodePath 路径选取", () => {
 
     expect(result.qrCodeLocalPath).toBe("/custom/tt-preview.png");
   });
+
+  it("upload() 未配置 qrcodePath 时使用默认路径 projectPath/upload.png", async () => {
+    const ci = new TTCI(makeTTConfig());
+    (ci as any).tt = {
+      loginByEmail: vi.fn().mockResolvedValue(undefined),
+      upload: vi.fn().mockResolvedValue({ shortUrl: "mock-tt-upload-url", expireTime: 9999999999 }),
+    };
+
+    const result = await ci.upload();
+
+    expect(result.qrCodeLocalPath).toBe("/project/upload.png");
+  });
+
+  it("upload() 配置 qrcodePath.upload 时使用自定义路径", async () => {
+    const ci = new TTCI(makeTTConfig({ upload: "/custom/tt-upload.png" }));
+    (ci as any).tt = {
+      loginByEmail: vi.fn().mockResolvedValue(undefined),
+      upload: vi.fn().mockResolvedValue({ shortUrl: "mock-tt-upload-url", expireTime: 9999999999 }),
+    };
+
+    const result = await ci.upload();
+
+    expect(result.qrCodeLocalPath).toBe("/custom/tt-upload.png");
+  });
 });
 
 describe("JdCI - qrcodePath 路径选取", () => {
@@ -300,5 +380,27 @@ describe("JdCI - qrcodePath 路径选取", () => {
     const result = await ci.preview();
 
     expect(result.qrCodeLocalPath).toBe("/custom/jd-preview.jpg");
+  });
+
+  it("upload() 未配置 qrcodePath 时使用默认路径 projectPath/upload.jpg", async () => {
+    const ci = new JdCI(makeJdConfig());
+    (ci as any).jdCi = {
+      upload: vi.fn().mockResolvedValue({ imgUrl: "https://qr.example.com/jd-upload.jpg" }),
+    };
+
+    const result = await ci.upload();
+
+    expect(result.qrCodeLocalPath).toBe("/project/upload.jpg");
+  });
+
+  it("upload() 配置 qrcodePath.upload 时使用自定义路径", async () => {
+    const ci = new JdCI(makeJdConfig({ upload: "/custom/jd-upload.jpg" }));
+    (ci as any).jdCi = {
+      upload: vi.fn().mockResolvedValue({ imgUrl: "https://qr.example.com/jd-upload.jpg" }),
+    };
+
+    const result = await ci.upload();
+
+    expect(result.qrCodeLocalPath).toBe("/custom/jd-upload.jpg");
   });
 });
