@@ -306,4 +306,110 @@ describe("normalizeConfig", () => {
       projectPath: path.join(cwd, "dist/dev/mp-weixin"),
     });
   });
+
+  test("qrcodePath 相对路径被解析为相对于 cwd 的绝对路径", async () => {
+    /** 当前工作目录 */
+    const cwd = "/workspace/project";
+
+    await expect(
+      normalizeConfig({
+        cwd,
+        args: {
+          operation: "preview",
+          platform: "mp-weixin",
+        },
+        config: {
+          qrcodePath: {
+            preview: "./output/preview.png",
+            upload: "./output/upload.png",
+          },
+          "mp-weixin": {
+            appid: "wx-appid",
+            privateKeyPath: "keys/private.key",
+          },
+        },
+        packageJson: {},
+      }),
+    ).resolves.toMatchObject({
+      qrcodePath: {
+        preview: path.join(cwd, "output/preview.png"),
+        upload: path.join(cwd, "output/upload.png"),
+      },
+    });
+  });
+
+  test("qrcodePath 绝对路径保持不变", async () => {
+    await expect(
+      normalizeConfig({
+        cwd: "/workspace/project",
+        args: {
+          operation: "upload",
+          platform: "mp-weixin",
+        },
+        config: {
+          qrcodePath: {
+            preview: "/tmp/my-preview.jpg",
+            upload: "/tmp/my-upload.jpg",
+          },
+          "mp-weixin": {
+            appid: "wx-appid",
+            privateKeyPath: "keys/private.key",
+          },
+        },
+        packageJson: {},
+      }),
+    ).resolves.toMatchObject({
+      qrcodePath: {
+        preview: "/tmp/my-preview.jpg",
+        upload: "/tmp/my-upload.jpg",
+      },
+    });
+  });
+
+  test("未配置 qrcodePath 时结果中不含 qrcodePath 字段", async () => {
+    /** 归一化后的配置 */
+    const normalized = await normalizeConfig({
+      cwd: "/workspace/project",
+      args: {
+        operation: "upload",
+        platform: "mp-weixin",
+      },
+      config: {
+        "mp-weixin": {
+          appid: "wx-appid",
+          privateKeyPath: "keys/private.key",
+        },
+      },
+      packageJson: {},
+    });
+
+    expect(normalized.qrcodePath).toBeUndefined();
+  });
+
+  test("qrcodePath 仅配置 preview 时 upload 为 undefined", async () => {
+    /** 当前工作目录 */
+    const cwd = "/workspace/project";
+
+    /** 归一化后的配置 */
+    const normalized = await normalizeConfig({
+      cwd,
+      args: {
+        operation: "preview",
+        platform: "mp-weixin",
+      },
+      config: {
+        qrcodePath: {
+          preview: "./output/preview.png",
+        },
+        "mp-weixin": {
+          appid: "wx-appid",
+          privateKeyPath: "keys/private.key",
+        },
+      },
+      packageJson: {},
+    });
+
+    expect(normalized.qrcodePath?.preview).toBe(path.join(cwd, "output/preview.png"));
+    expect(normalized.qrcodePath?.upload).toBeUndefined();
+  });
 });

@@ -144,6 +144,16 @@ export const miniciConfigSchema = z
     desc: z.union([nonEmptyStringSchema, descFunctionSchema]).optional(),
     /** 小程序构建产物目录 */
     projectPath: nonEmptyStringSchema.optional(),
+    /** 二维码图片保存路径 */
+    qrcodePath: z
+      .object({
+        /** preview 操作的二维码图片保存路径 */
+        preview: nonEmptyStringSchema.optional(),
+        /** upload 操作的二维码图片保存路径 */
+        upload: nonEmptyStringSchema.optional(),
+      })
+      .strict()
+      .optional(),
     /** 微信小程序配置 */
     "mp-weixin": weappConfigSchema.optional(),
     /** 支付宝小程序配置 */

@@ -54,6 +54,31 @@ function normalizeProjectPath(cwd: string, projectPath: string): string {
 }
 
 /**
+ * 将 qrcodePath 中的相对路径解析为绝对路径。
+ *
+ * @param cwd 当前工作目录
+ * @param qrcodePath 用户配置的 qrcodePath
+ * @returns 已解析为绝对路径的 qrcodePath
+ */
+function normalizeQrcodePath(
+  cwd: string,
+  qrcodePath: MiniCIConfig["qrcodePath"],
+): NormalizedMiniCIConfig["qrcodePath"] {
+  if (!qrcodePath) return undefined;
+
+  /** 解析单个路径字段 */
+  const resolvePath = (p: string | undefined): string | undefined => {
+    if (!p) return undefined;
+    return path.isAbsolute(p) ? p : path.join(cwd, p);
+  };
+
+  return {
+    preview: resolvePath(qrcodePath.preview),
+    upload: resolvePath(qrcodePath.upload),
+  };
+}
+
+/**
  * 解析发布描述。
  *
  * @param input 配置归一化入参
@@ -135,6 +160,9 @@ export async function normalizeConfig<P extends MiniCIPlatform>(
     projectPath,
   );
 
+  /** 规范化后的 qrcodePath */
+  const qrcodePath = normalizeQrcodePath(input.cwd, config.qrcodePath);
+
   /** 规范化后的配置 */
   const normalizedConfig = {
     operation: input.args.operation,
@@ -144,6 +172,7 @@ export async function normalizeConfig<P extends MiniCIPlatform>(
     version,
     desc,
     packageJson: input.packageJson,
+    ...(qrcodePath && { qrcodePath }),
     platformConfig,
   } as NormalizedMiniCIConfig<P>;
 
