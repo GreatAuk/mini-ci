@@ -28,16 +28,36 @@ export async function runMiniCIWithConfig(
   options: RunMiniCIWithConfigOptions,
 ): Promise<MiniCIResult> {
   const packageJson = await loadPackageJson(options.cwd);
-  const normalized = await normalizeConfig({
-    args: options.args,
-    cwd: options.cwd,
-    config: options.config,
-    packageJson,
-  });
+  const results: MiniCIResult["results"] = [];
 
-  await assertPathExists(normalized.projectPath);
+  for (const operation of options.args.operations) {
+    const normalized = await normalizeConfig({
+      args: {
+        ...options.args,
+        operation,
+      },
+      cwd: options.cwd,
+      config: options.config,
+      packageJson,
+    });
 
-  const ci = createCI(normalized);
-  await ci.init();
-  return ci[normalized.operation]();
+    await assertPathExists(normalized.projectPath);
+
+    const ci = createCI(normalized);
+    await ci.init();
+    const result = await ci[operation]();
+    results.push(result);
+  }
+
+  const firstResult = results[0];
+
+  return {
+    success: results.every((result) => result.success),
+    operations: options.args.operations,
+    platform: firstResult.platform,
+    version: firstResult.version,
+    desc: firstResult.desc,
+    projectPath: firstResult.projectPath,
+    results,
+  };
 }

@@ -57,12 +57,14 @@ async function main(): Promise<void> {
       cwd: process.cwd(),
     });
 
-    if (result.qrCodeLocalPath) {
-      console.log(`二维码路径：${result.qrCodeLocalPath}`);
-    }
+    for (const item of result.results) {
+      if (item.qrCodeLocalPath) {
+        console.log(`二维码路径：${item.qrCodeLocalPath}`);
+      }
 
-    if (result.qrCodeContent) {
-      console.log(`二维码内容：${result.qrCodeContent}`);
+      if (item.qrCodeContent) {
+        console.log(`二维码内容：${item.qrCodeContent}`);
+      }
     }
 
     process.exitCode = result.success ? 0 : 1;

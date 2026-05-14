@@ -154,7 +154,9 @@ describe("AlipayCI - qrcodePath 路径选取", () => {
     (ci as any).minidev = {
       minidev: {
         app: { getUploadedVersion: vi.fn().mockResolvedValue("0.9.0") },
-        upload: vi.fn().mockResolvedValue({ experienceQrCodeUrl: "https://qr.example.com/exp.png" }),
+        upload: vi
+          .fn()
+          .mockResolvedValue({ experienceQrCodeUrl: "https://qr.example.com/exp.png" }),
       },
     };
 
@@ -168,7 +170,9 @@ describe("AlipayCI - qrcodePath 路径选取", () => {
     (ci as any).minidev = {
       minidev: {
         app: { getUploadedVersion: vi.fn().mockResolvedValue("0.9.0") },
-        upload: vi.fn().mockResolvedValue({ experienceQrCodeUrl: "https://qr.example.com/exp.png" }),
+        upload: vi
+          .fn()
+          .mockResolvedValue({ experienceQrCodeUrl: "https://qr.example.com/exp.png" }),
       },
     };
 

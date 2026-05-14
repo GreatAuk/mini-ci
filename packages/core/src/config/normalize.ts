@@ -4,15 +4,24 @@ import { validateConfig, validatePlatformConfig } from "./schema";
 import type {
   MiniCIConfig,
   MiniCIDescContext,
+  MiniCIOperation,
   MiniCIPlatform,
   NormalizedMiniCIConfig,
   ParsedCliArgs,
 } from "../types";
 
+/** 单次 action 归一化入参 */
+type SingleOperationArgs<P extends MiniCIPlatform> = Omit<ParsedCliArgs, "operations"> & {
+  /** 当前操作 */
+  operation: MiniCIOperation;
+  /** 当前平台 */
+  platform: P;
+};
+
 /** 配置归一化入参 */
 export interface NormalizeConfigInput<P extends MiniCIPlatform = MiniCIPlatform> {
-  /** 已解析的命令行参数 */
-  args: ParsedCliArgs & { platform: P };
+  /** 已解析的单次执行参数 */
+  args: SingleOperationArgs<P>;
   /** 当前工作目录 */
   cwd: string;
   /** 已加载的 minici 配置 */

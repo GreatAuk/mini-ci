@@ -135,7 +135,7 @@ projectPath: options.projectPath ?? process.env.UNI_OUTPUT_DIR
 规则：
 
 - 没有 `--open`、`--preview`、`--upload`：插件跳过，不执行 CI。
-- 同时传多个操作：报错。
+- 同时传多个操作：按固定顺序 `open -> preview -> upload` 执行。
 - `--` 后出现其他参数：报错。
 - 不支持 `--platform`、`--projectPath`、`--version`、`--desc`、`--config`、`--cwd`、`--dev`。
 - `version` 和 `desc` 需要通过 `uniMiniCI(options)` 配置。
@@ -176,14 +176,15 @@ CLI 模式下保持原规则：
 
 规则：
 
-- `build` 模式下，`--open`、`--preview`、`--upload` 都允许，在 `closeBundle` 阶段执行，确保构建产物已经写出。
-- `serve` 模式下，只允许 `--open`，在 `configureServer` 阶段执行一次。
-- `serve` 模式下传 `--preview` 或 `--upload`，直接报错，提示 `preview/upload 只支持 build 模式`。
+- `build` 模式下，`--open`、`--preview`、`--upload` 都允许，可组合传入，在 `closeBundle` 阶段按固定顺序执行，确保构建产物已经写出。
+- `serve` 模式下，允许 `--open` 和 `--preview`，在 `configureServer` 阶段执行一次。
+- `serve` 模式下传 `--upload`，直接报错，提示 `upload 只支持 build 模式`。
 
 这样可以支持：
 
 ```bash
 uni dev -p mp-weixin -- --open
+uni dev -p mp-weixin -- --open --preview
 ```
 
 同时避免在常驻开发服务中误触发发布动作。
@@ -221,11 +222,11 @@ CLI 可继续使用 `cac`，不强行迁移到 `minimist`。CLI 和插件的参�
 ## 错误处理
 
 - 插件未传操作：跳过，不输出错误。
-- 多个操作：`只能指定一个操作：--open、--preview、--upload`。
+- 多个操作：按固定顺序执行，不报错。
 - 插件模式未知参数：`Vite 插件模式暂不支持参数：--xxx`。
 - 缺少 `UNI_PLATFORM`：`无法确定 platform，请检查 UNI_PLATFORM`。
 - 缺少 `projectPath` 来源：`无法确定 projectPath，请配置 uniMiniCI({ projectPath }) 或检查 UNI_OUTPUT_DIR`。
-- `serve` 模式执行 `preview/upload`：`preview/upload 只支持 build 模式`。
+- `serve` 模式执行 `upload`：`upload 只支持 build 模式`。
 - 配置错误、路径错误、平台 SDK 错误继续沿用现有抛错方式，不吞掉原始错误。
 
 ## 测试策略
@@ -235,7 +236,7 @@ CLI 可继续使用 `cac`，不强行迁移到 `minimist`。CLI 和插件的参�
 - 从 `["--", "--upload"]` 解析为 `upload`。
 - 从 `["--", "--open"]` 解析为 `open`。
 - 没有 `--` 或 `--` 后没有操作时返回跳过。
-- 同时传 `--open --upload` 报错。
+- 同时传 `--open --upload` 按顺序执行。
 - 传 `--version`、`--platform` 等未知参数报错。
 
 新增插件执行测试：
@@ -243,8 +244,8 @@ CLI 可继续使用 `cac`，不强行迁移到 `minimist`。CLI 和插件的参�
 - `build` 模式下构建完成后执行 `upload`。
 - `build` 模式下构建完成后执行 `preview`。
 - `build` 模式下构建完成后执行 `open`。
-- `serve` 模式下允许执行 `open`。
-- `serve` 模式下拒绝 `preview/upload`。
+- `serve` 模式下允许执行 `open` 和 `preview`。
+- `serve` 模式下拒绝 `upload`。
 - 插件 options 中的 `projectPath` 优先于 `UNI_OUTPUT_DIR`。
 - 缺少 options `projectPath` 时使用 `UNI_OUTPUT_DIR`。
 - 缺少 `UNI_PLATFORM` 且传了操作时报错。
@@ -274,4 +275,4 @@ README 需要新增 Vite 插件用法：
 - 不移除 `minici` CLI。
 - 不让 Vite 插件读取 `minici.config.ts`。
 - 不支持插件模式下的 `--version`、`--desc`、`--projectPath`、`--platform` 等透传参数。
-- 不支持 `serve` 模式下执行 `preview` 或 `upload`。
+- 不支持 `serve` 模式下执行 `upload`。

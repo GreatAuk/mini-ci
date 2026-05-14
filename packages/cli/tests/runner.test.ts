@@ -5,11 +5,16 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 
 /** mock createCI 返回的执行记录 */
 const calls: Array<{ method: string }> = [];
+/** 需要 mock 失败的操作 */
+let failingMethod: string | undefined;
 
 vi.mock("../../core/src/ci/registry", () => ({
   createCI: (config: any) => ({
     init: vi.fn(),
     open: vi.fn().mockImplementation(() => {
+      if (failingMethod === "open") {
+        throw new Error("open failed");
+      }
       calls.push({ method: "open" });
       return {
         success: true,
@@ -21,6 +26,9 @@ vi.mock("../../core/src/ci/registry", () => ({
       };
     }),
     preview: vi.fn().mockImplementation(() => {
+      if (failingMethod === "preview") {
+        throw new Error("preview failed");
+      }
       calls.push({ method: "preview" });
       return {
         success: true,
@@ -32,6 +40,9 @@ vi.mock("../../core/src/ci/registry", () => ({
       };
     }),
     upload: vi.fn().mockImplementation(() => {
+      if (failingMethod === "upload") {
+        throw new Error("upload failed");
+      }
       calls.push({ method: "upload" });
       return {
         success: true,
@@ -72,7 +83,7 @@ async function createProjectDir(): Promise<string> {
     path.join(cwd, "minici.config.mjs"),
     `
       export default {
-        desc: '配置描述',
+        desc: ({ operation }) => \`配置描述-\${operation}\`,
         'mp-weixin': {
           appid: 'wx-appid',
           privateKeyPath: 'key/private.key'
@@ -85,6 +96,7 @@ async function createProjectDir(): Promise<string> {
 
 afterEach(async () => {
   calls.length = 0;
+  failingMethod = undefined;
   await Promise.all(tempDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
 });
 
@@ -137,6 +149,9 @@ describe("runMiniCI", () => {
 
     expect(result.version).toBe("2.0.0");
     expect(result.desc).toBe("CLI 描述");
+    expect(result.results).toHaveLength(1);
+    expect(result.results[0]?.version).toBe("2.0.0");
+    expect(result.results[0]?.desc).toBe("CLI 描述");
   });
 
   test("projectPath 不存在时抛出错误", async () => {
@@ -190,5 +205,48 @@ describe("runMiniCI", () => {
         cwd,
       }),
     ).rejects.toThrow("请指定操作");
+  });
+
+  test("按固定顺序执行多个操作并返回聚合结果", async () => {
+    const cwd = await createProjectDir();
+
+    const { runMiniCI } = await import("../src/index");
+    const result = await runMiniCI({
+      argv: ["--upload", "--open", "--preview", "--platform", "mp-weixin"],
+      cwd,
+    });
+
+    expect(calls).toEqual([{ method: "open" }, { method: "preview" }, { method: "upload" }]);
+    expect(result.success).toBe(true);
+    expect(result.operations).toEqual(["open", "preview", "upload"]);
+    expect(result.results.map((item) => item.operation)).toEqual(["open", "preview", "upload"]);
+  });
+
+  test("多个操作会为每个 action 分别解析 desc 上下文", async () => {
+    const cwd = await createProjectDir();
+
+    const { runMiniCI } = await import("../src/index");
+    const result = await runMiniCI({
+      argv: ["--open", "--preview", "--platform", "mp-weixin"],
+      cwd,
+    });
+
+    expect(result.results.map((item) => item.desc)).toEqual(["配置描述-open", "配置描述-preview"]);
+  });
+
+  test("某个操作失败时不会继续执行后续操作", async () => {
+    const cwd = await createProjectDir();
+    failingMethod = "preview";
+
+    const { runMiniCI } = await import("../src/index");
+
+    await expect(
+      runMiniCI({
+        argv: ["--open", "--preview", "--upload", "--platform", "mp-weixin"],
+        cwd,
+      }),
+    ).rejects.toThrow("preview failed");
+
+    expect(calls).toEqual([{ method: "open" }]);
   });
 });

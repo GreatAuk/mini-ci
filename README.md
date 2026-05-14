@@ -36,13 +36,15 @@ pnpm add -D tt-ide-cli        # 抖音
 
 ## 支持的操作
 
-两种使用方式均支持以下三个操作，每次只能指定其中一个：
+两种使用方式均支持以下三个操作：
 
 | 操作        | 说明                       |
 | ----------- | -------------------------- |
 | `--open`    | 打开开发者工具             |
 | `--preview` | 上传开发版并生成预览二维码 |
 | `--upload`  | 上传体验版                 |
+
+`--open`、`--preview`、`--upload` 可以组合使用；组合时执行顺序固定为 `open -> preview -> upload`，不受命令行书写顺序影响。
 
 ## 共享配置字段
 
@@ -89,6 +91,7 @@ export default defineConfig({
 minici --upload --platform mp-weixin
 minici --preview --platform mp-weixin
 minici --open   --platform mp-weixin --dev
+minici --open --preview --upload --platform mp-weixin
 ```
 
 详细用法、参数说明和平台配置 → [docs/cli.md](docs/cli.md)
@@ -127,8 +130,12 @@ export default defineConfig({
 ```bash
 uni build -p mp-weixin -- --upload
 uni build -p mp-weixin -- --preview
+uni build -p mp-weixin -- --preview --upload
 uni dev   -p mp-weixin -- --open
+uni dev   -p mp-weixin -- --open --preview
 ```
+
+`uni dev` 场景支持 `--open` 和 `--preview`，不支持 `--upload`。
 
 插件模式不读取 `minici.config.ts`，平台和产物目录由 `UNI_PLATFORM`、`UNI_OUTPUT_DIR` 自动注入。
 

@@ -1,4 +1,4 @@
-import type { MiniCIPlatform, MiniCIResult, NormalizedMiniCIConfig } from "../types";
+import type { MiniCIPlatform, MiniCISingleResult, NormalizedMiniCIConfig } from "../types";
 /** 平台 CI 基类 */
 export declare abstract class BaseCI<P extends MiniCIPlatform = MiniCIPlatform> {
     /** 运行时配置 */
@@ -11,14 +11,14 @@ export declare abstract class BaseCI<P extends MiniCIPlatform = MiniCIPlatform> 
      * @param extra 额外结果字段
      * @returns 执行结果
      */
-    protected createResult(success: boolean, extra?: Partial<MiniCIResult>): MiniCIResult;
+    protected createResult(success: boolean, extra?: Partial<MiniCISingleResult>): MiniCISingleResult;
     /** 初始化平台 SDK */
     abstract init(): void | Promise<void>;
     /** 打开开发者工具 */
-    abstract open(): Promise<MiniCIResult>;
+    abstract open(): Promise<MiniCISingleResult>;
     /** 预览小程序 */
-    abstract preview(): Promise<MiniCIResult>;
+    abstract preview(): Promise<MiniCISingleResult>;
     /** 上传小程序 */
-    abstract upload(): Promise<MiniCIResult>;
+    abstract upload(): Promise<MiniCISingleResult>;
 }
 //# sourceMappingURL=BaseCI.d.ts.map

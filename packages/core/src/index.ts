@@ -11,6 +11,7 @@ export {
   type MiniCIOperation,
   type MiniCIPlatform,
   type MiniCIResult,
+  type MiniCISingleResult,
   type NormalizedMiniCIConfig,
   type NormalizedMiniCIConfigBase,
   type ParsedCliArgs,

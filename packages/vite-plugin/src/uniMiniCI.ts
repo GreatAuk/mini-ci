@@ -85,7 +85,7 @@ export function uniMiniCI(options: UniMiniCIPluginOptions): Plugin {
     /** 插件透传参数 */
     const pluginArgs = parsePluginArgs(process.argv);
 
-    if (!pluginArgs.operation) {
+    if (pluginArgs.operations.length === 0) {
       return;
     }
 
@@ -95,8 +95,11 @@ export function uniMiniCI(options: UniMiniCIPluginOptions): Plugin {
       return;
     }
 
-    if (resolvedConfig?.command === "serve" && pluginArgs.operation !== "open") {
-      throw new Error("preview/upload 只支持 build 模式");
+    /** 是否为开发模式（NODE_ENV=development 或 serve 命令） */
+    const isDev = resolvedConfig?.command === "serve" || process.env.NODE_ENV === "development";
+
+    if (isDev && pluginArgs.operations.includes("upload")) {
+      throw new Error("upload 只支持 build 模式");
     }
 
     /** 当前平台 */
@@ -106,7 +109,7 @@ export function uniMiniCI(options: UniMiniCIPluginOptions): Plugin {
 
     await runMiniCIWithConfig({
       args: {
-        operation: pluginArgs.operation,
+        operations: pluginArgs.operations,
         platform,
         projectPath,
       },

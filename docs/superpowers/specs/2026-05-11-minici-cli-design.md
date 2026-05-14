@@ -9,7 +9,7 @@
 ## 已确认决策
 
 - bin 命令名为 `minici`。
-- 命令形态采用互斥操作参数，不使用子命令：`minici --upload --platform mp-weixin --projectPath dist/build/mp-weixin`。
+- 命令形态采用操作 flag（可组合），不使用子命令：`minici --upload --platform mp-weixin --projectPath dist/build/mp-weixin`。
 - 配置文件由 `c12` 加载，文件名为 `minici.config`。
 - 参数校验使用 `zod`，不使用 Joi。
 - 配置文件平台 key 使用 uniapp 平台名。
@@ -61,7 +61,7 @@ src/
     compareVersion.ts
 ```
 
-`cli.ts` 负责解析 `--open | --preview | --upload` 互斥操作参数和通用参数。`index.ts` 导出 `runMiniCI()`、`defineConfig()` 和相关类型，方便测试和配置文件获得类型提示。
+`cli.ts` 负责解析 `--open | --preview | --upload` 操作 flag 和通用参数。`index.ts` 导出 `runMiniCI()`、`defineConfig()` 和相关类型，方便测试和配置文件获得类型提示。
 
 平台 CI 类从 `_temp/src/*CI.ts` 迁移，但不再依赖 Taro 的 `IPluginContext`。新增 `RuntimeContext` 替代 Taro `ctx`，只提供项目根目录、日志、文件系统检查、用户目录和退出码处理等最小能力。
 
@@ -97,12 +97,13 @@ export default defineConfig({
 
 ## 命令参数
 
-支持三个互斥操作参数：
+支持三个操作 flag：
 
 ```bash
 minici --open --platform mp-weixin
 minici --preview --platform mp-alipay
 minici --upload --platform mp-baidu --projectPath dist/build/mp-baidu
+minici --open --preview --upload --platform mp-weixin
 ```
 
 通用参数：
@@ -120,7 +121,8 @@ minici --upload --platform mp-baidu --projectPath dist/build/mp-baidu
 
 操作参数规则：
 
-- `--open`、`--preview`、`--upload` 必须且只能传入一个。
+- `--open`、`--preview`、`--upload` 至少传入一个，可以组合传入。
+- 组合时执行顺序固定为 `open -> preview -> upload`，不受命令行书写顺序影响。
 - 不再支持 `minici open`、`minici preview`、`minici upload` 这种位置参数形式。
 - 传入任何位置参数都视为参数错误，避免旧命令形态和新命令形态同时存在。
 

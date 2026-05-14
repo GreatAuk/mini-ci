@@ -12,7 +12,7 @@ describe("parseCliArgs", () => {
         "dist/build/mp-weixin",
       ]),
     ).toEqual({
-      operation: "upload",
+      operations: ["upload"],
       platform: "mp-weixin",
       projectPath: "dist/build/mp-weixin",
     });
@@ -30,7 +30,7 @@ describe("parseCliArgs", () => {
         "灰度发布",
       ]),
     ).toEqual({
-      operation: "preview",
+      operations: ["preview"],
       platform: "mp-alipay",
       version: "1.2.3",
       desc: "灰度发布",
@@ -59,10 +59,18 @@ describe("parseCliArgs", () => {
     );
   });
 
-  test("同时传入多个操作参数会抛出明确错误", () => {
-    expect(() => parseCliArgs(["--open", "--upload", "--platform", "mp-weixin"])).toThrow(
-      "只能指定一个操作",
-    );
+  test("同时传入多个操作参数会按固定顺序解析", () => {
+    expect(parseCliArgs(["--open", "--upload", "--platform", "mp-weixin"])).toEqual({
+      operations: ["open", "upload"],
+      platform: "mp-weixin",
+    });
+  });
+
+  test("多个操作参数的解析顺序不受传参顺序影响", () => {
+    expect(parseCliArgs(["--upload", "--open", "--platform", "mp-weixin"])).toEqual({
+      operations: ["open", "upload"],
+      platform: "mp-weixin",
+    });
   });
 
   test("未知参数会抛出明确错误", () => {
@@ -109,7 +117,7 @@ describe("parseCliArgs", () => {
         "/workspace",
       ]),
     ).toEqual({
-      operation: "upload",
+      operations: ["upload"],
       platform: "mp-baidu",
       projectPath: "dist/mp-baidu",
       version: "3.0.0",
@@ -121,14 +129,14 @@ describe("parseCliArgs", () => {
 
   test("解析 --open 操作", () => {
     expect(parseCliArgs(["--open", "--platform", "mp-toutiao"])).toEqual({
-      operation: "open",
+      operations: ["open"],
       platform: "mp-toutiao",
     });
   });
 
   test("解析 --dev 标记", () => {
     expect(parseCliArgs(["--open", "--platform", "mp-weixin", "--dev"])).toEqual({
-      operation: "open",
+      operations: ["open"],
       platform: "mp-weixin",
       dev: true,
     });

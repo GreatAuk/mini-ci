@@ -4,8 +4,8 @@ export declare class JdCI extends BaseCI<"mp-jd"> {
     /** jd-miniprogram-ci 模块 */
     private jdCi;
     init(): Promise<void>;
-    open(): Promise<import("uni-mini-ci-core").MiniCIResult>;
-    preview(): Promise<import("uni-mini-ci-core").MiniCIResult>;
-    upload(): Promise<import("uni-mini-ci-core").MiniCIResult>;
+    open(): Promise<import("uni-mini-ci-core").MiniCISingleResult>;
+    preview(): Promise<import("uni-mini-ci-core").MiniCISingleResult>;
+    upload(): Promise<import("uni-mini-ci-core").MiniCISingleResult>;
 }
 //# sourceMappingURL=JdCI.d.ts.map

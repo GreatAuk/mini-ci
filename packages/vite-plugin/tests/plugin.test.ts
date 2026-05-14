@@ -10,6 +10,7 @@ const calls: Array<{ method: string; projectPath: string; platform: string }> = 
 const originalArgv = process.argv;
 const originalUniPlatform = process.env.UNI_PLATFORM;
 const originalUniOutputDir = process.env.UNI_OUTPUT_DIR;
+const originalNodeEnv = process.env.NODE_ENV;
 const tempDirs: string[] = [];
 
 vi.mock("../../core/src/ci/registry", () => ({
@@ -82,6 +83,13 @@ function createResolvedConfig(root: string, command: "build" | "serve"): Resolve
   } as ResolvedConfig;
 }
 
+function createWatchBuildConfig(root: string): ResolvedConfig {
+  return {
+    root,
+    command: "build",
+  } as ResolvedConfig;
+}
+
 async function runBuildPlugin(plugin: Plugin, root: string) {
   if (typeof plugin.configResolved === "function") {
     await (plugin.configResolved as Function).call(null, createResolvedConfig(root, "build"));
@@ -102,6 +110,16 @@ async function runServePlugin(plugin: Plugin, root: string) {
   }
 }
 
+async function runWatchBuildPlugin(plugin: Plugin, root: string) {
+  if (typeof plugin.configResolved === "function") {
+    await (plugin.configResolved as Function).call(null, createWatchBuildConfig(root));
+  }
+
+  if (typeof plugin.closeBundle === "function") {
+    await (plugin.closeBundle as Function).call(null);
+  }
+}
+
 afterEach(async () => {
   calls.length = 0;
   process.argv = originalArgv;
@@ -114,6 +132,11 @@ afterEach(async () => {
     delete process.env.UNI_OUTPUT_DIR;
   } else {
     process.env.UNI_OUTPUT_DIR = originalUniOutputDir;
+  }
+  if (originalNodeEnv === undefined) {
+    delete process.env.NODE_ENV;
+  } else {
+    process.env.NODE_ENV = originalNodeEnv;
   }
   await Promise.all(tempDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
 });
@@ -136,6 +159,39 @@ describe("uniMiniCI", () => {
     await runBuildPlugin(plugin, cwd);
 
     expect(calls).toEqual([{ method: "upload", projectPath: outputDir, platform: "mp-weixin" }]);
+  });
+
+  test("build 模式按固定顺序执行多个操作", async () => {
+    const { cwd, outputDir } = await createProject("build");
+    process.argv = [
+      "node",
+      "uni",
+      "build",
+      "-p",
+      "mp-weixin",
+      "--",
+      "--upload",
+      "--open",
+      "--preview",
+    ];
+    process.env.UNI_PLATFORM = "mp-weixin";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+
+    const plugin = uniMiniCI({
+      desc: "插件描述",
+      "mp-weixin": {
+        appid: "wx-appid",
+        privateKeyPath: "key/private.key",
+      },
+    });
+
+    await runBuildPlugin(plugin, cwd);
+
+    expect(calls).toEqual([
+      { method: "open", projectPath: outputDir, platform: "mp-weixin" },
+      { method: "preview", projectPath: outputDir, platform: "mp-weixin" },
+      { method: "upload", projectPath: outputDir, platform: "mp-weixin" },
+    ]);
   });
 
   test("serve 模式执行 open", async () => {
@@ -170,7 +226,102 @@ describe("uniMiniCI", () => {
       },
     });
 
-    await expect(runServePlugin(plugin, cwd)).rejects.toThrow("preview/upload 只支持 build 模式");
+    await expect(runServePlugin(plugin, cwd)).rejects.toThrow("upload 只支持 build 模式");
+  });
+
+  test("serve 模式执行 preview", async () => {
+    const { cwd, outputDir } = await createProject("serve");
+    process.argv = ["node", "uni", "dev", "-p", "mp-weixin", "--", "--preview"];
+    process.env.UNI_PLATFORM = "mp-weixin";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+
+    const plugin = uniMiniCI({
+      desc: "插件描述",
+      "mp-weixin": {
+        appid: "wx-appid",
+        privateKeyPath: "key/private.key",
+      },
+    });
+
+    await runServePlugin(plugin, cwd);
+
+    expect(calls).toEqual([{ method: "preview", projectPath: outputDir, platform: "mp-weixin" }]);
+  });
+
+  test("serve 模式按固定顺序执行 open 和 preview", async () => {
+    const { cwd, outputDir } = await createProject("serve");
+    process.argv = ["node", "uni", "dev", "-p", "mp-weixin", "--", "--preview", "--open"];
+    process.env.UNI_PLATFORM = "mp-weixin";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+
+    const plugin = uniMiniCI({
+      desc: "插件描述",
+      "mp-weixin": {
+        appid: "wx-appid",
+        privateKeyPath: "key/private.key",
+      },
+    });
+
+    await runServePlugin(plugin, cwd);
+
+    expect(calls).toEqual([
+      { method: "open", projectPath: outputDir, platform: "mp-weixin" },
+      { method: "preview", projectPath: outputDir, platform: "mp-weixin" },
+    ]);
+  });
+
+  test("serve 模式包含 upload 时整体报错且不执行其他操作", async () => {
+    const { cwd, outputDir } = await createProject("serve");
+    process.argv = ["node", "uni", "dev", "-p", "mp-weixin", "--", "--open", "--upload"];
+    process.env.UNI_PLATFORM = "mp-weixin";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+
+    const plugin = uniMiniCI({
+      "mp-weixin": {
+        appid: "wx-appid",
+        privateKeyPath: "key/private.key",
+      },
+    });
+
+    await expect(runServePlugin(plugin, cwd)).rejects.toThrow("upload 只支持 build 模式");
+    expect(calls).toEqual([]);
+  });
+
+  test("watch build 模式（uni dev）拒绝 upload", async () => {
+    const { cwd, outputDir } = await createProject("build");
+    process.argv = ["node", "uni", "dev", "-p", "mp-weixin", "--", "--preview", "--upload"];
+    process.env.UNI_PLATFORM = "mp-weixin";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+    process.env.NODE_ENV = "development";
+
+    const plugin = uniMiniCI({
+      "mp-weixin": {
+        appid: "wx-appid",
+        privateKeyPath: "key/private.key",
+      },
+    });
+
+    await expect(runWatchBuildPlugin(plugin, cwd)).rejects.toThrow("upload 只支持 build 模式");
+    expect(calls).toEqual([]);
+  });
+
+  test("watch build 模式（uni dev）允许 open 和 preview", async () => {
+    const { cwd, outputDir } = await createProject("build");
+    process.argv = ["node", "uni", "dev", "-p", "mp-weixin", "--", "--open", "--preview"];
+    process.env.UNI_PLATFORM = "mp-weixin";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+    process.env.NODE_ENV = "development";
+
+    const plugin = uniMiniCI({
+      desc: "插件描述",
+      "mp-weixin": {
+        appid: "wx-appid",
+        privateKeyPath: "key/private.key",
+      },
+    });
+
+    await runWatchBuildPlugin(plugin, cwd);
+    expect(calls.map((c) => c.method)).toEqual(["open", "preview"]);
   });
 
   test("未传操作时跳过", async () => {

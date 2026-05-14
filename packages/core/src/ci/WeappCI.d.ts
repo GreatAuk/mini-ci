@@ -8,8 +8,8 @@ export declare class WeappCI extends BaseCI<"mp-weixin"> {
     /** 微信开发者工具安装路径 */
     private devToolsInstallPath;
     init(): Promise<void>;
-    open(): Promise<import("uni-mini-ci-core").MiniCIResult>;
-    preview(): Promise<import("uni-mini-ci-core").MiniCIResult>;
-    upload(): Promise<import("uni-mini-ci-core").MiniCIResult>;
+    open(): Promise<import("uni-mini-ci-core").MiniCISingleResult>;
+    preview(): Promise<import("uni-mini-ci-core").MiniCISingleResult>;
+    upload(): Promise<import("uni-mini-ci-core").MiniCISingleResult>;
 }
 //# sourceMappingURL=WeappCI.d.ts.map

@@ -173,8 +173,8 @@ export interface PlatformConfigMap {
 
 /** 已解析的 CLI 参数 */
 export interface ParsedCliArgs {
-  /** 当前操作 */
-  operation: MiniCIOperation;
+  /** 当前操作列表 */
+  operations: MiniCIOperation[];
   /** 当前平台 */
   platform: MiniCIPlatform;
   /** 项目产物目录 */
@@ -225,8 +225,8 @@ export type NormalizedMiniCIConfig<P extends MiniCIPlatform = MiniCIPlatform> =
       }
     : never;
 
-/** minici 执行结果 */
-export interface MiniCIResult {
+/** minici 单个 action 执行结果 */
+export interface MiniCISingleResult {
   /** 是否执行成功 */
   success: boolean;
   /** 当前操作 */
@@ -243,6 +243,24 @@ export interface MiniCIResult {
   qrCodeLocalPath?: string;
   /** 二维码内容 */
   qrCodeContent?: string;
+}
+
+/** minici 执行聚合结果 */
+export interface MiniCIResult {
+  /** 是否全部执行成功 */
+  success: boolean;
+  /** 当前操作列表 */
+  operations: MiniCIOperation[];
+  /** 当前平台 */
+  platform: MiniCIPlatform;
+  /** 当前发布版本 */
+  version: string;
+  /** 当前发布描述 */
+  desc: string;
+  /** 当前项目目录 */
+  projectPath: string;
+  /** 每个 action 的执行结果 */
+  results: MiniCISingleResult[];
 }
 
 /** 共享 minici 执行入口选项 */

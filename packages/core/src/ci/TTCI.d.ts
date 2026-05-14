@@ -5,8 +5,8 @@ export declare class TTCI extends BaseCI<"mp-toutiao"> {
     private tt;
     init(): Promise<void>;
     private beforeCheck;
-    open(): Promise<import("uni-mini-ci-core").MiniCIResult>;
-    preview(): Promise<import("uni-mini-ci-core").MiniCIResult>;
-    upload(): Promise<import("uni-mini-ci-core").MiniCIResult>;
+    open(): Promise<import("uni-mini-ci-core").MiniCISingleResult>;
+    preview(): Promise<import("uni-mini-ci-core").MiniCISingleResult>;
+    upload(): Promise<import("uni-mini-ci-core").MiniCISingleResult>;
 }
 //# sourceMappingURL=TTCI.d.ts.map

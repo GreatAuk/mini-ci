@@ -5,8 +5,8 @@ import type { MiniCIOperation } from "uni-mini-ci-core";
 
 /** Vite 插件参数解析结果 */
 export interface ParsedPluginArgs {
-  /** 当前操作；未传操作时表示跳过插件执行 */
-  operation?: MiniCIOperation;
+  /** 当前操作列表；空数组表示跳过插件执行 */
+  operations: MiniCIOperation[];
 }
 
 /** Vite 插件模式支持的参数名 */
@@ -57,7 +57,7 @@ export function parsePluginArgs(argv: string[]): ParsedPluginArgs {
   const pluginArgv = readPluginArgv(argv);
 
   if (pluginArgv.length === 0) {
-    return { operation: undefined };
+    return { operations: [] };
   }
 
   /** minimist 解析结果 */
@@ -78,14 +78,10 @@ export function parsePluginArgs(argv: string[]): ParsedPluginArgs {
   const operations = supportedOperations.filter((operation) => options[operation] === true);
 
   if (operations.length === 0) {
-    return { operation: undefined };
-  }
-
-  if (operations.length > 1) {
-    throw new Error("只能指定一个操作：--open、--preview、--upload");
+    return { operations: [] };
   }
 
   return {
-    operation: operations[0],
+    operations,
   };
 }

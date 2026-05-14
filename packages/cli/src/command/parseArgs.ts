@@ -149,10 +149,6 @@ export function parseCliArgs(argv: string[]): ParsedCliArgs {
     );
   }
 
-  if (operations.length > 1) {
-    throw new Error("只能指定一个操作：--open、--preview、--upload");
-  }
-
   /** 原始平台参数 */
   const rawPlatform = readStringOption("platform", options.platform);
 
@@ -170,7 +166,7 @@ export function parseCliArgs(argv: string[]): ParsedCliArgs {
 
   /** 已解析的 CLI 参数 */
   const cliArgs: ParsedCliArgs = {
-    operation: operations[0],
+    operations,
     platform: rawPlatform,
   };
   /** 项目产物目录 */
