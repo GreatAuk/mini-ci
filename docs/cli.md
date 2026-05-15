@@ -10,17 +10,12 @@ pnpm add -D uni-mini-ci-cli
 
 按目标平台安装对应 SDK：
 
-| 平台   | SDK 包名            |
-| ------ | ------------------- |
-| 微信   | `miniprogram-ci`    |
-| 支付宝 | `minidev`           |
-| 京东   | `jd-miniprogram-ci` |
-| 百度   | `swan-toolkit`      |
-| 抖音   | `tt-ide-cli`        |
-
 ```bash
-# 示例：安装微信 SDK
+# 微信
 pnpm add -D miniprogram-ci
+# 支付宝
+pnpm add -D minidev
+# 其他平台参考 README.md
 ```
 
 ## 配置文件
@@ -36,9 +31,6 @@ export default defineConfig({
 
   // 发布描述，支持字符串或函数（函数形式仅在 upload 操作时调用）
   desc: ({ platform, version }) => `${platform} v${version} 自动构建`,
-
-  // 构建产物目录，未指定时默认为 dist/build/<platform>
-  projectPath: "dist/build/mp-weixin",
 
   // 二维码图片保存路径（可选，未配置时各平台使用默认路径）
   qrcodePath: {
@@ -76,7 +68,7 @@ export default defineConfig({
 | `desc`        | `string \| (ctx) => string`             | 发布描述。函数形式接收 `{ operation, platform, version, projectPath, cwd, packageJson }`。**注意：函数形式仅在 `upload` 操作时调用**，`open`/`preview` 操作会跳过函数调用并回退到默认描述 |
 | `projectPath` | `string`                                | 构建产物目录。支持相对路径（相对 cwd），不填时为 `dist/build/<platform>`                                                                                                                  |
 | `qrcodePath`  | `{ preview?: string; upload?: string }` | 二维码图片保存路径。支持相对路径（相对 cwd）或绝对路径，不填时各平台使用默认路径（`<projectPath>/preview.jpg` 等）                                                                        |
-| `hooks`       | `MiniCIHooks`                           | 完成和错误 hook。`onPreviewComplete` / `onUploadComplete` 在对应 CI 方法成功和失败时触发；`onError` 在共享 runner 捕获错误时触发 |
+| `hooks`       | `MiniCIHooks`                           | 完成和错误 hook。`onPreviewComplete` / `onUploadComplete` 在对应 CI 方法成功和失败时触发；`onError` 在共享 runner 捕获错误时触发                                                          |
 | `mp-weixin`   | `WeappConfig`                           | 微信小程序平台配置                                                                                                                                                                        |
 | `mp-alipay`   | `AlipayConfig`                          | 支付宝小程序平台配置                                                                                                                                                                      |
 | `mp-baidu`    | `SwanConfig`                            | 百度小程序平台配置                                                                                                                                                                        |
@@ -132,89 +124,17 @@ minici --upload --platform mp-weixin
 # 预览支付宝小程序
 minici --preview --platform mp-alipay --projectPath dist/build/mp-alipay
 
-# 开发模式下打开开发者工具
+# 开发模式下打开开发者工具. 注意 --dev 是必须的，否则会从 dist/build/<platform> 读取产物，导致无法找到正确的 projectPath。
 minici --open --platform mp-weixin --dev
 
 # 指定自定义配置文件
 minici --upload --platform mp-weixin --config ./config/ci.config.ts
 ```
 
-## 参数优先级
+### 参数优先级
 
 ```
-命令行参数 > minici.config 配置 > package.json 字段 > 自动默认值
-```
-
-## 平台配置详解
-
-### 微信小程序 (`mp-weixin`)
-
-```ts
-{
-  "mp-weixin": {
-    appid: "wx1234567890abcdef",    // 必填
-    privateKeyPath: "key/private.key", // 必填，CI 密钥文件路径
-    robot: 1,                        // 机器人编号 1-30
-    type: "miniProgram",             // 项目类型
-    ignores: ["node_modules/**"],    // 上传排除目录
-    setting: {},                     // 编译设置
-    devToolsInstallPath: "",         // 开发者工具安装路径
-  }
-}
-```
-
-### 支付宝小程序 (`mp-alipay`)
-
-```ts
-{
-  "mp-alipay": {
-    appid: "2021001100000001",       // 必填
-    toolId: "tool-id-xxx",           // 必填
-    privateKeyPath: "key/alipay.key", // 私钥文件路径（二选一）
-    privateKey: "-----BEGIN...",      // 私钥文本（二选一）
-    clientType: "alipay",            // 上传终端类型
-    deleteVersion: "0.0.1",          // 上传时删除的旧版本
-    devToolsInstallPath: "",         // 开发者工具安装路径
-  }
-}
-```
-
-### 百度小程序 (`mp-baidu`)
-
-```ts
-{
-  "mp-baidu": {
-    token: "百度小程序鉴权 token",    // 必填
-    minSwanVersion: "3.350.0",       // 最低基础库版本
-    devToolsInstallPath: "",         // 开发者工具安装路径
-  }
-}
-```
-
-### 京东小程序 (`mp-jd`)
-
-```ts
-{
-  "mp-jd": {
-    privateKey: "京东小程序密钥",      // 必填
-    robot: 1,                        // 机器人编号
-    ignores: [],                     // 上传忽略规则
-  }
-}
-```
-
-### 抖音小程序 (`mp-toutiao`)
-
-```ts
-{
-  "mp-toutiao": {
-    email: "dev@example.com",        // 必填
-    password: "xxx",                 // 必填
-    setting: {
-      skipDomainCheck: false,        // 是否跳过域名校验
-    },
-  }
-}
+命令行参数 > minici.config 配置
 ```
 
 ## 与 uniapp 构建配合

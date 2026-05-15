@@ -17,7 +17,7 @@ pnpm add -D vite-plugin-uni-mini-ci
 pnpm add -D miniprogram-ci
 # 支付宝
 pnpm add -D minidev
-# 其他平台参考 CLI 文档
+# 其他平台参考 README.md
 ```
 
 ## 基本用法
@@ -106,15 +106,6 @@ uniMiniCI({
 });
 ```
 
-### 构建模式 vs 开发模式
-
-| 模式    | 触发时机               | 允许的操作                  |
-| ------- | ---------------------- | --------------------------- |
-| `build` | `closeBundle` hook     | `open`、`preview`、`upload` |
-| `serve` | `configureServer` hook | 仅 `open`                   |
-
-开发模式（`uni dev`）下只能执行 `--open` 操作。尝试在 serve 模式使用 `--preview` 或 `--upload` 会抛出错误。
-
 ## 插件配置
 
 `uniMiniCI(options)` 接受的配置与 `minici.config.ts` 结构一致：
@@ -149,7 +140,7 @@ interface UniMiniCIPluginOptions {
 }
 ```
 
-> **重要**：插件模式不读取 `minici.config.ts` 配置文件，所有配置直接写在 `uniMiniCI()` 参数中。
+> **重要**：vite 插件模式不读取 `minici.config.ts` 配置文件，所有配置直接写在 `uniMiniCI()` 参数中。
 
 ## 与 CLI 模式的区别
 
@@ -232,13 +223,9 @@ uni build -p mp-weixin
 uni build -p mp-weixin -- --upload
 ```
 
-### Q: 报错 "无法确定 platform"
+### Q: 报错 "upload 只支持 build 模式"
 
-确保通过 uni 命令启动构建，它会自动设置 `UNI_PLATFORM` 环境变量。直接用 `vite build` 不会设置此变量。
-
-### Q: 报错 "preview/upload 只支持 build 模式"
-
-开发模式（`uni dev`）下只允许 `--open` 操作。预览和上传需要完整构建产物，请使用 `uni build`。
+开发模式（`uni dev`）下只允许 `--open` 和 `preview` 操作。上传需要完整构建产物，请使用 `uni build`。
 
 ### Q: 可以同时使用 CLI 和插件模式吗？
 

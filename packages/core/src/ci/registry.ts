@@ -7,7 +7,13 @@ import { WeappCI } from "./WeappCI";
 import type { BaseCI } from "./BaseCI";
 import type { MiniCIPlatform, NormalizedMiniCIConfig } from "../types";
 
-/** 平台到 CI 类的映射 */
+/** 平台到 CI 类的映射
+ * mp-weixin: 微信
+ * mp-alipay: 支付宝
+ * mp-baidu: 百度
+ * mp-jd: 京东
+ * mp-toutiao: 字节抖音
+ */
 const ciMap: Record<MiniCIPlatform, new (config: any) => BaseCI> = {
   "mp-weixin": WeappCI,
   "mp-alipay": AlipayCI,
