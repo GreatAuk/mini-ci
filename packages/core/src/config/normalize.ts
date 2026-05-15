@@ -89,6 +89,7 @@ function normalizeQrcodePath(
 
 /**
  * 解析发布描述。
+ * 仅 upload 操作需要调用 desc 函数；open/preview 使用静态默认值避免阻塞。
  *
  * @param input 配置归一化入参
  * @param version 已归一化的版本号
@@ -109,24 +110,27 @@ async function resolveDesc<P extends MiniCIPlatform>(
   }
 
   if (typeof input.config.desc === "function") {
-    /** 发布描述函数上下文 */
-    const context: MiniCIDescContext = {
-      operation: input.args.operation,
-      platform: input.args.platform,
-      version,
-      projectPath,
-      cwd: input.cwd,
-      packageJson: input.packageJson,
-    };
+    /** 非 upload 操作跳过 desc 函数调用，避免阻塞交互；继续走默认描述逻辑 */
+    if (input.args.operation === "upload") {
+      /** 发布描述函数上下文 */
+      const context: MiniCIDescContext = {
+        operation: input.args.operation,
+        platform: input.args.platform,
+        version,
+        projectPath,
+        cwd: input.cwd,
+        packageJson: input.packageJson,
+      };
 
-    /** 发布描述函数返回值 */
-    const resolvedDesc = await input.config.desc(context);
+      /** 发布描述函数返回值 */
+      const resolvedDesc = await input.config.desc(context);
 
-    if (typeof resolvedDesc !== "string" || resolvedDesc.length === 0) {
-      throw new Error("配置校验失败：desc 函数必须返回非空字符串");
+      if (typeof resolvedDesc !== "string" || resolvedDesc.length === 0) {
+        throw new Error("配置校验失败：desc 函数必须返回非空字符串");
+      }
+
+      return resolvedDesc;
     }
-
-    return resolvedDesc;
   }
 
   /** package.json 中的 description */

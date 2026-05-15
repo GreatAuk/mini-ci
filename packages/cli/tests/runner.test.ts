@@ -227,11 +227,16 @@ describe("runMiniCI", () => {
 
     const { runMiniCI } = await import("../src/index");
     const result = await runMiniCI({
-      argv: ["--open", "--preview", "--platform", "mp-weixin"],
+      argv: ["--open", "--preview", "--upload", "--platform", "mp-weixin"],
       cwd,
     });
 
-    expect(result.results.map((item) => item.desc)).toEqual(["配置描述-open", "配置描述-preview"]);
+    const descs = result.results.map((item) => item.desc);
+    /** open 和 preview 不调用 desc 函数，回退到 packageJson.description 或默认描述 */
+    expect(descs[0]).not.toBe("配置描述-open");
+    expect(descs[1]).not.toBe("配置描述-preview");
+    /** upload 调用 desc 函数 */
+    expect(descs[2]).toBe("配置描述-upload");
   });
 
   test("某个操作失败时不会继续执行后续操作", async () => {

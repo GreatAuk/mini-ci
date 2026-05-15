@@ -115,7 +115,7 @@ describe("normalizeConfig", () => {
     const normalized = await normalizeConfig({
       cwd,
       args: {
-        operation: "preview",
+        operation: "upload",
         platform: "mp-weixin",
         version: "2.0.0",
         projectPath: "dist/custom",
@@ -143,8 +143,34 @@ describe("normalizeConfig", () => {
     });
 
     expect(normalized.desc).toBe(
-      `preview|mp-weixin|2.0.0|${path.join(cwd, "dist/custom")}|${cwd}|demo-mini`,
+      `upload|mp-weixin|2.0.0|${path.join(cwd, "dist/custom")}|${cwd}|demo-mini`,
     );
+  });
+
+  test("非 upload 操作跳过 desc 函数调用", async () => {
+    /** 归一化后的配置 */
+    const normalized = await normalizeConfig({
+      cwd: "/workspace/project",
+      args: {
+        operation: "preview",
+        platform: "mp-weixin",
+        version: "1.0.0",
+      },
+      config: {
+        desc: async () => {
+          throw new Error("不应在 preview 操作中被调用");
+        },
+        "mp-weixin": {
+          appid: "wx-appid",
+          privateKeyPath: "keys/private.key",
+        },
+      },
+      packageJson: {
+        description: "包描述",
+      },
+    });
+
+    expect(normalized.desc).toBe("包描述");
   });
 
   test("回退到 packageJson.version 和 packageJson.description", async () => {

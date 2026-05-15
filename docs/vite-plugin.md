@@ -34,6 +34,7 @@ export default defineConfig({
     uni(),
     uniMiniCI({
       version: "1.0.0",
+      // 函数形式仅在 upload 操作时调用，open/preview 操作跳过并使用默认描述
       desc: ({ platform, version }) => `${platform} v${version} 自动构建`,
       "mp-weixin": {
         appid: "wx1234567890abcdef",

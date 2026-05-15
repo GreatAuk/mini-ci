@@ -34,7 +34,7 @@ export default defineConfig({
   // 发布版本号，未指定时从 package.json version 字段读取
   version: "1.0.0",
 
-  // 发布描述，支持字符串或函数
+  // 发布描述，支持字符串或函数（函数形式仅在 upload 操作时调用）
   desc: ({ platform, version }) => `${platform} v${version} 自动构建`,
 
   // 构建产物目录，未指定时默认为 dist/build/<platform>
@@ -42,8 +42,8 @@ export default defineConfig({
 
   // 二维码图片保存路径（可选，未配置时各平台使用默认路径）
   qrcodePath: {
-    preview: "./output/preview.png",  // preview 操作的二维码路径
-    upload: "./output/upload.png",    // upload 操作的二维码路径
+    preview: "./output/preview.png", // preview 操作的二维码路径
+    upload: "./output/upload.png", // upload 操作的二维码路径
   },
 
   // 各平台私有配置
@@ -57,17 +57,17 @@ export default defineConfig({
 
 ### 配置字段
 
-| 字段          | 类型                        | 说明                                                                                     |
-| ------------- | --------------------------- | ---------------------------------------------------------------------------------------- |
-| `version`     | `string`                    | 发布版本号。默认读取 `package.json` 中的 `version`                                       |
-| `desc`        | `string \| (ctx) => string` | 发布描述。函数形式接收 `{ operation, platform, version, projectPath, cwd, packageJson }` |
-| `projectPath` | `string`                    | 构建产物目录。支持相对路径（相对 cwd），不填时为 `dist/build/<platform>`                 |
-| `qrcodePath`  | `{ preview?: string; upload?: string }` | 二维码图片保存路径。支持相对路径（相对 cwd）或绝对路径，不填时各平台使用默认路径（`<projectPath>/preview.jpg` 等） |
-| `mp-weixin`   | `WeappConfig`               | 微信小程序平台配置                                                                       |
-| `mp-alipay`   | `AlipayConfig`              | 支付宝小程序平台配置                                                                     |
-| `mp-baidu`    | `SwanConfig`                | 百度小程序平台配置                                                                       |
-| `mp-jd`       | `JdConfig`                  | 京东小程序平台配置                                                                       |
-| `mp-toutiao`  | `TTConfig`                  | 抖音小程序平台配置                                                                       |
+| 字段          | 类型                                    | 说明                                                                                                                                                                                      |
+| ------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`     | `string`                                | 发布版本号。默认读取 `package.json` 中的 `version`                                                                                                                                        |
+| `desc`        | `string \| (ctx) => string`             | 发布描述。函数形式接收 `{ operation, platform, version, projectPath, cwd, packageJson }`。**注意：函数形式仅在 `upload` 操作时调用**，`open`/`preview` 操作会跳过函数调用并回退到默认描述 |
+| `projectPath` | `string`                                | 构建产物目录。支持相对路径（相对 cwd），不填时为 `dist/build/<platform>`                                                                                                                  |
+| `qrcodePath`  | `{ preview?: string; upload?: string }` | 二维码图片保存路径。支持相对路径（相对 cwd）或绝对路径，不填时各平台使用默认路径（`<projectPath>/preview.jpg` 等）                                                                        |
+| `mp-weixin`   | `WeappConfig`                           | 微信小程序平台配置                                                                                                                                                                        |
+| `mp-alipay`   | `AlipayConfig`                          | 支付宝小程序平台配置                                                                                                                                                                      |
+| `mp-baidu`    | `SwanConfig`                            | 百度小程序平台配置                                                                                                                                                                        |
+| `mp-jd`       | `JdConfig`                              | 京东小程序平台配置                                                                                                                                                                        |
+| `mp-toutiao`  | `TTConfig`                              | 抖音小程序平台配置                                                                                                                                                                        |
 
 ## 命令行用法
 
