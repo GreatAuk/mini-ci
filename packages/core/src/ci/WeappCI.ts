@@ -127,7 +127,10 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
         this.logger.detail("path", previewQrcodePath);
         this.logger.detail("qr", qrContent);
       } catch (error) {
-        this.logger.warn("获取预览二维码失败", error instanceof Error ? error.message : String(error));
+        this.logger.warn(
+          "获取预览二维码失败",
+          error instanceof Error ? error.message : String(error),
+        );
       }
 
       return this.createResult(true, {
@@ -179,7 +182,10 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
         this.logger.detail("path", uploadQrcodePath);
         this.logger.detail("qr", qrContent);
       } catch (error) {
-        this.logger.warn("体验二维码生成失败", error instanceof Error ? error.message : String(error));
+        this.logger.warn(
+          "体验二维码生成失败",
+          error instanceof Error ? error.message : String(error),
+        );
       }
 
       return this.createResult(true, {
