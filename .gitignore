@@ -6,3 +6,4 @@ dist
 # docs/superpowers
 private.*.key
 playground/config.ts
+.superpowers/
