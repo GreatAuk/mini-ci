@@ -3,8 +3,10 @@ import { supportedPlatforms } from "../types";
 
 import type {
   AlipayClientType,
+  MiniCICompleteHook,
   MiniCIConfig,
   MiniCIDescFunction,
+  MiniCIErrorHook,
   MiniCIPlatform,
   PlatformConfigMap,
   ProjectType,
@@ -14,6 +16,18 @@ import type {
 const descFunctionSchema = z.custom<MiniCIDescFunction>(
   (value) => typeof value === "function",
   "desc 必须是字符串或函数",
+);
+
+/** 完成 hook 函数 schema */
+const completeHookSchema = z.custom<MiniCICompleteHook>(
+  (value) => typeof value === "function",
+  "hook 必须是函数",
+);
+
+/** 错误 hook 函数 schema */
+const errorHookSchema = z.custom<MiniCIErrorHook>(
+  (value) => typeof value === "function",
+  "hook 必须是函数",
 );
 
 /** 非空字符串 schema */
@@ -146,6 +160,19 @@ const qrcodePathSchema = z
   .strict()
   .optional();
 
+/** minici hooks schema */
+const hooksSchema = z
+  .object({
+    /** CI 执行 preview 后触发 */
+    onPreviewComplete: completeHookSchema.optional(),
+    /** CI 执行 upload 后触发 */
+    onUploadComplete: completeHookSchema.optional(),
+    /** 共享错误通知 */
+    onError: errorHookSchema.optional(),
+  })
+  .strict()
+  .optional();
+
 /** minici 配置文件 schema */
 export const miniciConfigSchema = z
   .object({
@@ -157,6 +184,8 @@ export const miniciConfigSchema = z
     projectPath: nonEmptyStringSchema.optional(),
     /** 二维码图片保存路径 */
     qrcodePath: qrcodePathSchema,
+    /** minici hooks 配置 */
+    hooks: hooksSchema,
     /** 微信小程序配置 */
     "mp-weixin": weappConfigSchema.optional(),
     /** 支付宝小程序配置 */
@@ -181,6 +210,13 @@ function formatConfigError(error: z.ZodError): Error {
   const messages = error.issues.map((issue) => {
     /** 字段路径 */
     const path = issue.path.join(".");
+
+    if (issue.code === "unrecognized_keys" && issue.keys.length > 0) {
+      /** 未知字段路径前缀 */
+      const prefix = path ? `${path}.` : "";
+
+      return `${prefix}${issue.keys.join(", ")} ${issue.message}`;
+    }
 
     return `${path || "config"} ${issue.message}`;
   });

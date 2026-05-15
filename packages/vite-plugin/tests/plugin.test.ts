@@ -432,4 +432,32 @@ describe("uniMiniCI", () => {
 
     expect(calls).toEqual([]);
   });
+
+  test("hooks 会通过插件配置透传到共享 runner", async () => {
+    const { cwd, outputDir } = await createProject("build");
+    process.argv = ["node", "uni", "build", "-p", "mp-weixin", "--", "--preview"];
+    process.env.UNI_PLATFORM = "mp-weixin";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+    const onPreviewComplete = vi.fn();
+
+    const plugin = uniMiniCI({
+      hooks: {
+        onPreviewComplete,
+      },
+      "mp-weixin": {
+        appid: "wx-appid",
+        privateKeyPath: "key/private.key",
+      },
+    });
+
+    await runBuildPlugin(plugin, cwd);
+
+    expect(onPreviewComplete).toHaveBeenCalledWith({
+      success: true,
+      data: expect.objectContaining({
+        platform: "mp-weixin",
+        projectPath: outputDir,
+      }),
+    });
+  });
 });

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { MiniCIConfig, MiniCIDescFunction, MiniCIPlatform, PlatformConfigMap } from "../types";
+import type { MiniCICompleteHook, MiniCIConfig, MiniCIDescFunction, MiniCIErrorHook, MiniCIPlatform, PlatformConfigMap } from "../types";
 /** minici 配置文件 schema */
 export declare const miniciConfigSchema: z.ZodObject<{
     version: z.ZodOptional<z.ZodString>;
@@ -8,6 +8,11 @@ export declare const miniciConfigSchema: z.ZodObject<{
     qrcodePath: z.ZodOptional<z.ZodObject<{
         preview: z.ZodOptional<z.ZodString>;
         upload: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>>;
+    hooks: z.ZodOptional<z.ZodObject<{
+        onPreviewComplete: z.ZodOptional<z.ZodCustom<MiniCICompleteHook, MiniCICompleteHook>>;
+        onUploadComplete: z.ZodOptional<z.ZodCustom<MiniCICompleteHook, MiniCICompleteHook>>;
+        onError: z.ZodOptional<z.ZodCustom<MiniCIErrorHook, MiniCIErrorHook>>;
     }, z.core.$strict>>;
     "mp-weixin": z.ZodOptional<z.ZodObject<{
         appid: z.ZodString;

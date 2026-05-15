@@ -122,6 +122,70 @@ export interface MiniCIDescContext {
 /** 动态发布描述生成函数（仅在 upload 操作时调用，open/preview 操作跳过） */
 export type MiniCIDescFunction = (context: MiniCIDescContext) => string | Promise<string>;
 
+/** minici 完成 hook 数据 */
+export interface MiniCICompleteHookData {
+  /** 当前操作是否成功 */
+  success: boolean;
+  /** 当前操作上下文和产物信息 */
+  data: {
+    /** 当前构建的小程序平台 */
+    platform: MiniCIPlatform;
+    /** 预览码本地路径 */
+    qrCodeLocalPath?: string;
+    /** 预览码内容 */
+    qrCodeContent?: string;
+    /** 插件或 CLI 传递的版本号 */
+    version: string;
+    /** 插件或 CLI 传递的描述文本 */
+    desc: string;
+    /** 预览或上传的目录路径 */
+    projectPath: string;
+  };
+  /** 错误对象 */
+  error?: Error;
+}
+
+/** minici 错误 hook 数据 */
+export interface MiniCIErrorHookData {
+  /** 错误发生在哪个操作；如果还没进入具体操作则为空 */
+  operation?: MiniCIOperation;
+  /** 当前平台；从运行参数能拿到时提供 */
+  platform?: MiniCIPlatform;
+  /** 错误对象 */
+  error: Error;
+  /** 已经解析出来的上下文；失败太早时可能为空或只有部分字段 */
+  data?: Partial<{
+    /** 当前构建的小程序平台 */
+    platform: MiniCIPlatform;
+    /** 预览码本地路径 */
+    qrCodeLocalPath: string;
+    /** 预览码内容 */
+    qrCodeContent: string;
+    /** 插件或 CLI 传递的版本号 */
+    version: string;
+    /** 插件或 CLI 传递的描述文本 */
+    desc: string;
+    /** 预览或上传的目录路径 */
+    projectPath: string;
+  }>;
+}
+
+/** minici 完成 hook 函数 */
+export type MiniCICompleteHook = (data: MiniCICompleteHookData) => void | Promise<void>;
+
+/** minici 错误 hook 函数 */
+export type MiniCIErrorHook = (data: MiniCIErrorHookData) => void | Promise<void>;
+
+/** minici hooks 配置 */
+export interface MiniCIHooks {
+  /** CI 执行 preview 后触发，成功和失败都会触发 */
+  onPreviewComplete?: MiniCICompleteHook;
+  /** CI 执行 upload 后触发，成功和失败都会触发 */
+  onUploadComplete?: MiniCICompleteHook;
+  /** 共享错误通知，在 runMiniCIWithConfig 内捕获到错误后触发 */
+  onError?: MiniCIErrorHook;
+}
+
 /** minici 配置文件结构 */
 export interface MiniCIConfig {
   /** 发布版本号 */
@@ -145,6 +209,8 @@ export interface MiniCIConfig {
      */
     upload?: string;
   };
+  /** minici hooks 配置 */
+  hooks?: MiniCIHooks;
   /** 微信小程序配置 */
   "mp-weixin"?: WeappConfig;
   /** 支付宝小程序配置 */

@@ -46,6 +46,19 @@ export default defineConfig({
     upload: "./output/upload.png", // upload 操作的二维码路径
   },
 
+  // hooks（可选）：preview/upload 完成或错误时触发
+  hooks: {
+    async onPreviewComplete(result) {
+      console.log("preview 完成", result.success, result.data.qrCodeLocalPath);
+    },
+    async onUploadComplete(result) {
+      console.log("upload 完成", result.success, result.data.version);
+    },
+    async onError(result) {
+      console.error("minici 执行失败", result.operation, result.error.message);
+    },
+  },
+
   // 各平台私有配置
   "mp-weixin": {
     appid: "wx1234567890abcdef",
@@ -63,11 +76,22 @@ export default defineConfig({
 | `desc`        | `string \| (ctx) => string`             | 发布描述。函数形式接收 `{ operation, platform, version, projectPath, cwd, packageJson }`。**注意：函数形式仅在 `upload` 操作时调用**，`open`/`preview` 操作会跳过函数调用并回退到默认描述 |
 | `projectPath` | `string`                                | 构建产物目录。支持相对路径（相对 cwd），不填时为 `dist/build/<platform>`                                                                                                                  |
 | `qrcodePath`  | `{ preview?: string; upload?: string }` | 二维码图片保存路径。支持相对路径（相对 cwd）或绝对路径，不填时各平台使用默认路径（`<projectPath>/preview.jpg` 等）                                                                        |
+| `hooks`       | `MiniCIHooks`                           | 完成和错误 hook。`onPreviewComplete` / `onUploadComplete` 在对应 CI 方法成功和失败时触发；`onError` 在共享 runner 捕获错误时触发 |
 | `mp-weixin`   | `WeappConfig`                           | 微信小程序平台配置                                                                                                                                                                        |
 | `mp-alipay`   | `AlipayConfig`                          | 支付宝小程序平台配置                                                                                                                                                                      |
 | `mp-baidu`    | `SwanConfig`                            | 百度小程序平台配置                                                                                                                                                                        |
 | `mp-jd`       | `JdConfig`                              | 京东小程序平台配置                                                                                                                                                                        |
 | `mp-toutiao`  | `TTConfig`                              | 抖音小程序平台配置                                                                                                                                                                        |
+
+### hooks
+
+`hooks` 可用于通知、日志上报、二维码后处理等场景：
+
+- `onPreviewComplete`：进入 `preview` CI 方法后，成功或失败都会触发。
+- `onUploadComplete`：进入 `upload` CI 方法后，成功或失败都会触发。
+- `onError`：`runMiniCIWithConfig()` 内捕获到错误后触发，包括前置失败、`open` 失败、`preview/upload` 失败和 hook 自身失败。
+
+`normalizeConfig()`、`projectPath` 检查、`ci.init()` 等前置失败不会触发 complete hook，只触发 `onError`。
 
 ## 命令行用法
 

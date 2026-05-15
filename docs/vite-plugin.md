@@ -36,6 +36,14 @@ export default defineConfig({
       version: "1.0.0",
       // 函数形式仅在 upload 操作时调用，open/preview 操作跳过并使用默认描述
       desc: ({ platform, version }) => `${platform} v${version} 自动构建`,
+      hooks: {
+        async onUploadComplete(result) {
+          console.log("upload 完成", result.success, result.data.qrCodeContent);
+        },
+        async onError(result) {
+          console.error("CI 错误", result.error.message);
+        },
+      },
       "mp-weixin": {
         appid: "wx1234567890abcdef",
         privateKeyPath: "key/private.key",
@@ -126,6 +134,8 @@ interface UniMiniCIPluginOptions {
     /** upload 操作的二维码图片保存路径 */
     upload?: string;
   };
+  /** hooks（可选）：preview/upload 完成或错误时触发 */
+  hooks?: MiniCIHooks;
   /** 微信小程序配置 */
   "mp-weixin"?: WeappConfig;
   /** 支付宝小程序配置 */
@@ -151,6 +161,8 @@ interface UniMiniCIPluginOptions {
 | 触发方式 | 手动执行命令                    | 构建完成自动触发                         |
 | 开发模式 | `--dev` 标记                    | 由 Vite `serve` 命令决定                 |
 | 操作指定 | `--open`/`--preview`/`--upload` | `-- --open`/`-- --preview`/`-- --upload` |
+
+CLI 和插件模式共享同一套 `hooks` 结构。区别只是配置来源不同：CLI 从 `minici.config.ts` 读取，插件从 `uniMiniCI(options)` 读取。
 
 ## 多平台配置示例
 

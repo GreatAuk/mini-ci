@@ -41,3 +41,7 @@
 ## Agent-Specific Instructions
 
 保持改动定点，不做无关重构。CLI 和插件共享行为优先沉到 `packages/core`；只属于命令行或 Vite 生命周期的逻辑分别留在 `packages/cli`、`packages/vite-plugin`。不确定平台 SDK 行为时先查本地代码和文档，再补测试验证。
+
+## 注意事项
+
+- 每个 .ts 文件都有对应的 .d.ts 和 .d.ts.map 文件，这些文件是打包时自动生成的，不要手动修改。

@@ -55,6 +55,7 @@ CLI 的 `minici.config.ts` 和 Vite 插件的 `uniMiniCI(options)` 使用同一�
 | `version`     | `string`                    | 发布版本号，不定义时默认读取 `package.json` 中的 `version`                                                                                 |
 | `desc`        | `string \| (ctx) => string` | 发布描述，不定义时默认取 package.json 中的 description；函数形式时 ctx: `{ operation, platform, version, projectPath, cwd, packageJson }`. |
 | `projectPath` | `string`                    | 构建产物目录，支持相对路径                                                                                                                 |
+| `hooks`       | `MiniCIHooks`               | 完成和错误 hook。支持 `onPreviewComplete`、`onUploadComplete`、`onError`，CLI 和 Vite 插件共享同一结构 |
 | `mp-weixin`   | `WeappConfig`               | 微信小程序平台配置                                                                                                                         |
 | `mp-alipay`   | `AlipayConfig`              | 支付宝小程序平台配置                                                                                                                       |
 | `mp-baidu`    | `SwanConfig`                | 百度小程序平台配置                                                                                                                         |
@@ -77,6 +78,17 @@ import { defineConfig } from "uni-mini-ci-cli";
 export default defineConfig({
   version: "1.0.0",
   desc: ({ platform, version }) => `${platform} v${version} 自动构建`,
+  hooks: {
+    async onPreviewComplete(result) {
+      console.log("preview 完成", result.success, result.data.qrCodeLocalPath);
+    },
+    async onUploadComplete(result) {
+      console.log("upload 完成", result.success, result.data.version);
+    },
+    async onError(result) {
+      console.error("CI 错误", result.operation, result.error.message);
+    },
+  },
   "mp-weixin": {
     appid: "wx1234567890abcdef",
     privateKeyPath: "key/private.key",

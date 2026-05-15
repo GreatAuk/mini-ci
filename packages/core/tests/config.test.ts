@@ -69,6 +69,51 @@ describe("config schema", () => {
       }),
     ).toThrow(/desc/);
   });
+
+  test("hooks 字段接受函数配置", () => {
+    /** preview 完成 hook */
+    const onPreviewComplete = async () => {};
+    /** upload 完成 hook */
+    const onUploadComplete = async () => {};
+    /** 错误 hook */
+    const onError = async () => {};
+
+    expect(
+      validateConfig({
+        hooks: {
+          onPreviewComplete,
+          onUploadComplete,
+          onError,
+        },
+      }),
+    ).toEqual({
+      hooks: {
+        onPreviewComplete,
+        onUploadComplete,
+        onError,
+      },
+    });
+  });
+
+  test("hooks 字段为非函数时会被拒绝", () => {
+    expect(() =>
+      validateConfig({
+        hooks: {
+          onPreviewComplete: "not-a-function",
+        },
+      }),
+    ).toThrow(/hooks\.onPreviewComplete/);
+  });
+
+  test("hooks 未知字段会被拒绝", () => {
+    expect(() =>
+      validateConfig({
+        hooks: {
+          onAfterBuild: () => {},
+        },
+      }),
+    ).toThrow(/hooks\.onAfterBuild/);
+  });
 });
 
 describe("normalizeConfig", () => {

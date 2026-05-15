@@ -97,6 +97,7 @@ async function createProjectDir(): Promise<string> {
 afterEach(async () => {
   calls.length = 0;
   failingMethod = undefined;
+  delete (globalThis as any).__miniciHookCalls__;
   await Promise.all(tempDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
 });
 
@@ -253,5 +254,46 @@ describe("runMiniCI", () => {
     ).rejects.toThrow("preview failed");
 
     expect(calls).toEqual([{ method: "open" }]);
+  });
+
+  test("配置文件 hooks 会在 CLI preview 后触发", async () => {
+    const cwd = await createTempDir();
+    await mkdir(path.join(cwd, "dist/build/mp-weixin"), { recursive: true });
+    await writeFile(path.join(cwd, "package.json"), JSON.stringify({ version: "1.0.0" }));
+    (globalThis as any).__miniciHookCalls__ = [];
+    await writeFile(
+      path.join(cwd, "minici.config.mjs"),
+      `
+        export default {
+          hooks: {
+            onPreviewComplete(result) {
+              globalThis.__miniciHookCalls__.push({
+                success: result.success,
+                platform: result.data.platform,
+                version: result.data.version
+              })
+            }
+          },
+          'mp-weixin': {
+            appid: 'wx-appid',
+            privateKeyPath: 'key/private.key'
+          }
+        }
+      `,
+    );
+
+    const { runMiniCI } = await import("../src/index");
+    await runMiniCI({
+      argv: ["--preview", "--platform", "mp-weixin"],
+      cwd,
+    });
+
+    expect((globalThis as any).__miniciHookCalls__).toEqual([
+      {
+        success: true,
+        platform: "mp-weixin",
+        version: "1.0.0",
+      },
+    ]);
   });
 });
