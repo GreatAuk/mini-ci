@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { createRequire } from "node:module";
-import { runMiniCI } from "./index";
+import { pathToFileURL } from "node:url";
+import { createLogger, isErrorLogged, runMiniCI } from "./index";
 
 const require = createRequire(import.meta.url);
 
@@ -36,10 +37,11 @@ minici - uniapp 小程序 CI 工具
 
 /**
  * CLI 入口，解析命令行参数并执行 minici 流程。
+ *
+ * @param argv CLI 参数
+ * @param cwd 当前工作目录
  */
-async function main(): Promise<void> {
-  const argv = process.argv.slice(2);
-
+export async function main(argv = process.argv.slice(2), cwd = process.cwd()): Promise<void> {
   if (argv.includes("-h") || argv.includes("--help") || argv.includes("help")) {
     console.log(HELP_TEXT);
     return;
@@ -54,25 +56,25 @@ async function main(): Promise<void> {
   try {
     const result = await runMiniCI({
       argv,
-      cwd: process.cwd(),
+      cwd,
     });
-
-    for (const item of result.results) {
-      if (item.qrCodeLocalPath) {
-        console.log(`二维码路径：${item.qrCodeLocalPath}`);
-      }
-
-      if (item.qrCodeContent) {
-        console.log(`二维码内容：${item.qrCodeContent}`);
-      }
-    }
 
     process.exitCode = result.success ? 0 : 1;
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(message);
+    if (!isErrorLogged(error)) {
+      /** CLI 顶层 logger */
+      const logger = createLogger();
+      /** 错误消息 */
+      const message = error instanceof Error ? error.message : String(error);
+
+      logger.error("执行失败");
+      logger.detail("error", message);
+    }
+
     process.exitCode = 1;
   }
 }
 
-await main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await main();
+}

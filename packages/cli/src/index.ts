@@ -6,12 +6,16 @@ import type { CliOptions } from "./types";
 import type { MiniCIConfig, MiniCIResult } from "uni-mini-ci-core";
 
 export {
+  createLogger,
+  isErrorLogged,
+  markErrorLogged,
   runMiniCIWithConfig,
   supportedOperations,
   supportedPlatforms,
   type AlipayClientType,
   type AlipayConfig,
   type JdConfig,
+  type Logger,
   type MiniCICompleteHook,
   type MiniCICompleteHookData,
   type MiniCIConfig,
