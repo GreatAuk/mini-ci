@@ -189,12 +189,18 @@ importers:
       '@dcloudio/vite-plugin-uni':
         specifier: 3.0.0-4080420251103001
         version: 3.0.0-4080420251103001(postcss@8.5.14)(rollup@4.60.3)(vite@5.2.8(@types/node@25.6.2)(less@4.6.4)(lightningcss@1.32.0)(sass@1.99.0)(terser@5.26.0))(vue@3.5.34(typescript@4.9.5))
+      '@uni-helper/plugin-uni':
+        specifier: 0.1.0
+        version: 0.1.0(@dcloudio/vite-plugin-uni@3.0.0-4080420251103001(postcss@8.5.14)(rollup@4.60.3)(vite@5.2.8(@types/node@25.6.2)(less@4.6.4)(lightningcss@1.32.0)(sass@1.99.0)(terser@5.26.0))(vue@3.5.34(typescript@4.9.5)))
       '@vue/runtime-core':
         specifier: ^3.4.21
         version: 3.5.34
       '@vue/tsconfig':
         specifier: ^0.1.3
         version: 0.1.3(@types/node@25.6.2)
+      minidev:
+        specifier: ^2.2.5
+        version: 2.2.5
       miniprogram-ci:
         specifier: ^2.1.31
         version: 2.1.31(eslint@8.57.1)
@@ -3730,6 +3736,11 @@ packages:
 
   '@ungap/structured-clone@1.3.1':
     resolution: {integrity: sha512-mUFwbeTqrVgDQxFveS+df2yfap6iuP20NAKAsBt5jDEoOTDew+zwLAOilHCeQJOVSvmgCX4ogqIrA0mnyr08yQ==}
+
+  '@uni-helper/plugin-uni@0.1.0':
+    resolution: {integrity: sha512-hBPUjoQc/SgqKsyGUl0fJiL+dDwLPhf2es1PJdsXcxHyOujoBP2+D4z5ie+Q72wVwKtTsQSP3tSjww/63JRmbA==}
+    peerDependencies:
+      '@dcloudio/vite-plugin-uni': '*'
 
   '@vitejs/plugin-legacy@5.3.2':
     resolution: {integrity: sha512-8moCOrIMaZ/Rjln0Q6GsH6s8fAt1JOI3k8nmfX4tXUxE5KAExVctSyOBk+A25GClsdSWqIk2yaUthH3KJ2X4tg==}
@@ -15006,6 +15017,10 @@ snapshots:
       '@typescript/native-preview-win32-x64': 7.0.0-dev.20260509.2
 
   '@ungap/structured-clone@1.3.1': {}
+
+  '@uni-helper/plugin-uni@0.1.0(@dcloudio/vite-plugin-uni@3.0.0-4080420251103001(postcss@8.5.14)(rollup@4.60.3)(vite@5.2.8(@types/node@25.6.2)(less@4.6.4)(lightningcss@1.32.0)(sass@1.99.0)(terser@5.26.0))(vue@3.5.34(typescript@4.9.5)))':
+    dependencies:
+      '@dcloudio/vite-plugin-uni': 3.0.0-4080420251103001(postcss@8.5.14)(rollup@4.60.3)(vite@5.2.8(@types/node@25.6.2)(less@4.6.4)(lightningcss@1.32.0)(sass@1.99.0)(terser@5.26.0))(vue@3.5.34(typescript@4.9.5))
 
   '@vitejs/plugin-legacy@5.3.2(terser@5.26.0)(vite@5.2.8(@types/node@25.6.2)(less@4.6.4)(lightningcss@1.32.0)(sass@1.99.0)(terser@5.26.0))':
     dependencies:

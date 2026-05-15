@@ -50,16 +50,16 @@ pnpm add -D tt-ide-cli        # 抖音
 
 CLI 的 `minici.config.ts` 和 Vite 插件的 `uniMiniCI(options)` 使用同一套配置结构：
 
-| 字段          | 类型                        | 说明                                                                                     |
-| ------------- | --------------------------- | ---------------------------------------------------------------------------------------- |
-| `version`     | `string`                    | 发布版本号，默认读取 `package.json` 中的 `version`                                       |
-| `desc`        | `string \| (ctx) => string` | 发布描述，函数形式接收 `{ operation, platform, version, projectPath, cwd, packageJson }` |
-| `projectPath` | `string`                    | 构建产物目录，支持相对路径                                                               |
-| `mp-weixin`   | `WeappConfig`               | 微信小程序平台配置                                                                       |
-| `mp-alipay`   | `AlipayConfig`              | 支付宝小程序平台配置                                                                     |
-| `mp-baidu`    | `SwanConfig`                | 百度小程序平台配置                                                                       |
-| `mp-jd`       | `JdConfig`                  | 京东小程序平台配置                                                                       |
-| `mp-toutiao`  | `TTConfig`                  | 抖音小程序平台配置                                                                       |
+| 字段          | 类型                        | 说明                                                                                                                                       |
+| ------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `version`     | `string`                    | 发布版本号，不定义时默认读取 `package.json` 中的 `version`                                                                                 |
+| `desc`        | `string \| (ctx) => string` | 发布描述，不定义时默认取 package.json 中的 description；函数形式时 ctx: `{ operation, platform, version, projectPath, cwd, packageJson }`. |
+| `projectPath` | `string`                    | 构建产物目录，支持相对路径                                                                                                                 |
+| `mp-weixin`   | `WeappConfig`               | 微信小程序平台配置                                                                                                                         |
+| `mp-alipay`   | `AlipayConfig`              | 支付宝小程序平台配置                                                                                                                       |
+| `mp-baidu`    | `SwanConfig`                | 百度小程序平台配置                                                                                                                         |
+| `mp-jd`       | `JdConfig`                  | 京东小程序平台配置                                                                                                                         |
+| `mp-toutiao`  | `TTConfig`                  | 抖音小程序平台配置                                                                                                                         |
 
 各平台配置字段的详细说明见对应使用文档。
 

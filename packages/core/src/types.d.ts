@@ -89,7 +89,7 @@ export interface MiniCIDescContext {
     /** 当前项目 package.json 内容 */
     packageJson: Record<string, unknown>;
 }
-/** 动态发布描述生成函数 */
+/** 动态发布描述生成函数（仅在 upload 操作时调用，open/preview 操作跳过） */
 export type MiniCIDescFunction = (context: MiniCIDescContext) => string | Promise<string>;
 /** minici 配置文件结构 */
 export interface MiniCIConfig {
