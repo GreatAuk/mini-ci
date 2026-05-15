@@ -30,13 +30,13 @@ export class TTCI extends BaseCI<"mp-toutiao"> {
 
   async open() {
     try {
-      console.log(`start 启动抖音小程序开发者工具... ${this.config.projectPath}`);
+      this.logger.start("启动抖音小程序开发者工具", this.config.projectPath);
       await this.tt.open({
         project: {
           path: this.config.projectPath,
         },
       });
-      console.log("打开 IDE 成功");
+      this.logger.success("打开 IDE 成功");
       return this.createResult(true);
     } catch (error) {
       throw new Error(
@@ -48,7 +48,7 @@ export class TTCI extends BaseCI<"mp-toutiao"> {
   async preview() {
     await this.beforeCheck();
     try {
-      console.log("start 预览抖音小程序");
+      this.logger.start("预览抖音小程序");
       const previewQrcodePath =
         this.config.qrcodePath?.preview ?? path.join(this.config.projectPath, "preview.png");
       const ttConfig = this.config.platformConfig;
@@ -71,12 +71,13 @@ export class TTCI extends BaseCI<"mp-toutiao"> {
         },
       });
 
-      console.log(`开发版上传成功 ${new Date().toLocaleString()}`);
+      this.logger.success("开发版上传成功", new Date().toLocaleString());
       const qrContent = previewResult.shortUrl as string;
       await printQrcode2Terminal(qrContent);
-      console.log(
-        `预览二维码已生成，存储在:"${previewQrcodePath}"，二维码内容是：${qrContent}，过期时间：${new Date(previewResult.expireTime * 1000).toLocaleString()}`,
-      );
+      this.logger.success("预览二维码已生成");
+      this.logger.detail("path", previewQrcodePath);
+      this.logger.detail("qr", qrContent);
+      this.logger.detail("expire", new Date(previewResult.expireTime * 1000).toLocaleString());
 
       return this.createResult(true, {
         qrCodeContent: qrContent,
@@ -92,8 +93,9 @@ export class TTCI extends BaseCI<"mp-toutiao"> {
   async upload() {
     await this.beforeCheck();
     try {
-      console.log("start 上传代码到抖音开放平台后台");
-      console.log(`本次上传版本号为："${this.config.version}"，上传描述为："${this.config.desc}"`);
+      this.logger.start("上传代码到抖音开放平台后台");
+      this.logger.detail("version", this.config.version);
+      this.logger.detail("desc", this.config.desc);
       const uploadQrcodePath =
         this.config.qrcodePath?.upload ?? path.join(this.config.projectPath, "upload.png");
 
@@ -111,12 +113,13 @@ export class TTCI extends BaseCI<"mp-toutiao"> {
         copyToClipboard: false,
       });
 
-      console.log(`体验版上传成功 ${new Date().toLocaleString()}`);
+      this.logger.success("体验版上传成功", new Date().toLocaleString());
       const qrContent = uploadResult.shortUrl as string;
       await printQrcode2Terminal(qrContent);
-      console.log(
-        `体验版二维码已生成，存储在:"${uploadQrcodePath}"，二维码内容是："${qrContent}"，过期时间：${new Date(uploadResult.expireTime * 1000).toLocaleString()}`,
-      );
+      this.logger.success("体验版二维码已生成");
+      this.logger.detail("path", uploadQrcodePath);
+      this.logger.detail("qr", qrContent);
+      this.logger.detail("expire", new Date(uploadResult.expireTime * 1000).toLocaleString());
 
       return this.createResult(true, {
         qrCodeContent: qrContent,

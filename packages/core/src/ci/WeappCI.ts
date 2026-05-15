@@ -84,7 +84,7 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
       throw new Error(`命令行工具路径不存在：${cliPath}`);
     }
 
-    console.log(`start 微信开发者工具... ${this.config.projectPath}`);
+    this.logger.start("微信开发者工具", this.config.projectPath);
     shell.exec(`${cliPath} open --project ${this.config.projectPath}`);
 
     return this.createResult(true);
@@ -92,7 +92,7 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
 
   async preview() {
     try {
-      console.log("start 上传开发版代码到微信后台并预览");
+      this.logger.start("上传开发版代码到微信后台并预览");
       const previewQrcodePath =
         this.config.qrcodePath?.preview ?? path.join(this.config.projectPath, "preview.jpg");
       const weappConfig = this.config.platformConfig;
@@ -116,16 +116,18 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
           (item: any) => item.name === "__APP__",
         );
         const extInfo = `本次上传${allPackageInfo!.size / 1024}kb ${mainPackageInfo ? ",其中主包" + mainPackageInfo.size / 1024 + "kb" : ""}`;
-        console.log(`开发版上传成功 ${new Date().toLocaleString()} ${extInfo}`);
+        this.logger.success("开发版上传成功", `${new Date().toLocaleString()} ${extInfo}`);
       }
 
       let qrContent: string | undefined;
       try {
         qrContent = await readQrcodeImageContent(previewQrcodePath);
         await printQrcode2Terminal(qrContent);
-        console.log(`预览二维码已生成，存储在:"${previewQrcodePath}"，二维码内容是：${qrContent}`);
+        this.logger.success("预览二维码已生成");
+        this.logger.detail("path", previewQrcodePath);
+        this.logger.detail("qr", qrContent);
       } catch (error) {
-        console.error(`获取预览二维码失败：${error instanceof Error ? error.message : error}`);
+        this.logger.warn("获取预览二维码失败", error instanceof Error ? error.message : String(error));
       }
 
       return this.createResult(true, {
@@ -141,8 +143,9 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
 
   async upload() {
     try {
-      console.log("start 上传体验版代码到微信后台");
-      console.log(`本次上传版本号为："${this.config.version}"，上传描述为："${this.config.desc}"`);
+      this.logger.start("上传体验版代码到微信后台");
+      this.logger.detail("version", this.config.version);
+      this.logger.detail("desc", this.config.desc);
       const weappConfig = this.config.platformConfig;
 
       const uploadResult = await this.ci.upload({
@@ -162,7 +165,7 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
           (item: any) => item.name === "__APP__",
         );
         const extInfo = `本次上传${allPackageInfo!.size / 1024}kb ${mainPackageInfo ? ",其中主包" + mainPackageInfo.size / 1024 + "kb" : ""}`;
-        console.log(`上传成功 ${new Date().toLocaleString()} ${extInfo}`);
+        this.logger.success("上传成功", `${new Date().toLocaleString()} ${extInfo}`);
       }
 
       const uploadQrcodePath =
@@ -172,11 +175,11 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
         qrContent = `https://open.weixin.qq.com/sns/getexpappinfo?appid=${weappConfig.appid}#wechat-redirect`;
         await printQrcode2Terminal(qrContent);
         await generateQrcodeImageFile(uploadQrcodePath, qrContent);
-        console.log(
-          `体验版二维码已生成，存储在:"${uploadQrcodePath}"，二维码内容是："${qrContent}"`,
-        );
+        this.logger.success("体验版二维码已生成");
+        this.logger.detail("path", uploadQrcodePath);
+        this.logger.detail("qr", qrContent);
       } catch (error) {
-        console.error(`体验二维码生成失败：${error instanceof Error ? error.message : error}`);
+        this.logger.warn("体验二维码生成失败", error instanceof Error ? error.message : String(error));
       }
 
       return this.createResult(true, {

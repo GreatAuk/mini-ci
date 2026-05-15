@@ -21,7 +21,7 @@ export class JdCI extends BaseCI<"mp-jd"> {
   }
 
   async open() {
-    console.warn("warn 京东小程序不支持 open 操作");
+    this.logger.warn("京东小程序不支持 open 操作");
     return this.createResult(true);
   }
 
@@ -31,7 +31,8 @@ export class JdCI extends BaseCI<"mp-jd"> {
       this.config.qrcodePath?.preview ?? path.join(this.config.projectPath, "preview.jpg");
 
     try {
-      console.log(`本次上传版本号为："${this.config.version}"，上传描述为："${this.config.desc}"`);
+      this.logger.detail("version", this.config.version);
+      this.logger.detail("desc", this.config.desc);
       const result = await this.jdCi.preview({
         desc: this.config.desc,
         privateKey,
@@ -44,9 +45,9 @@ export class JdCI extends BaseCI<"mp-jd"> {
       const qrcodeContent = await readQrcodeImageContent(result.imgUrl);
       await generateQrcodeImageFile(previewQrcodePath, qrcodeContent);
       await printQrcode2Terminal(qrcodeContent);
-      console.log(
-        `预览二维码已生成，存储在:"${previewQrcodePath}"，二维码内容是："${qrcodeContent}"`,
-      );
+      this.logger.success("预览二维码已生成");
+      this.logger.detail("path", previewQrcodePath);
+      this.logger.detail("qr", qrcodeContent);
 
       return this.createResult(true, {
         qrCodeContent: qrcodeContent,
@@ -63,7 +64,8 @@ export class JdCI extends BaseCI<"mp-jd"> {
       this.config.qrcodePath?.upload ?? path.join(this.config.projectPath, "upload.jpg");
 
     try {
-      console.log(`本次上传版本号为："${this.config.version}"，上传描述为："${this.config.desc}"`);
+      this.logger.detail("version", this.config.version);
+      this.logger.detail("desc", this.config.desc);
       const result = await this.jdCi.upload({
         desc: this.config.desc,
         privateKey,
@@ -77,9 +79,9 @@ export class JdCI extends BaseCI<"mp-jd"> {
       const qrcodeContent = await readQrcodeImageContent(result.imgUrl);
       await generateQrcodeImageFile(uploadQrcodePath, qrcodeContent);
       await printQrcode2Terminal(qrcodeContent);
-      console.log(
-        `体验版二维码已生成，存储在:"${uploadQrcodePath}"，二维码内容是："${qrcodeContent}"`,
-      );
+      this.logger.success("体验版二维码已生成");
+      this.logger.detail("path", uploadQrcodePath);
+      this.logger.detail("qr", qrcodeContent);
 
       return this.createResult(true, {
         qrCodeContent: qrcodeContent,

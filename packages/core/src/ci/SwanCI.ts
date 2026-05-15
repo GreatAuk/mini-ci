@@ -35,7 +35,7 @@ export class SwanCI extends BaseCI<"mp-baidu"> {
       throw new Error(`命令行工具路径不存在：${cliPath}`);
     }
 
-    console.log(`start 百度开发者工具... ${this.config.projectPath}`);
+    this.logger.start("百度开发者工具", this.config.projectPath);
     shell.exec(`${cliPath} --project-path ${this.config.projectPath}`);
 
     return this.createResult(true);
@@ -45,7 +45,7 @@ export class SwanCI extends BaseCI<"mp-baidu"> {
     const previewQrcodePath =
       this.config.qrcodePath?.preview ?? path.join(this.config.projectPath, "preview.png");
     const swanConfig = this.config.platformConfig;
-    console.log("start 预览百度小程序");
+    this.logger.start("预览百度小程序");
 
     return new Promise<ReturnType<typeof this.createResult>>((resolve, reject) => {
       shell.exec(
@@ -57,9 +57,9 @@ export class SwanCI extends BaseCI<"mp-baidu"> {
               const qrContent = parsed.list[0].url as string;
               await printQrcode2Terminal(qrContent);
               await generateQrcodeImageFile(previewQrcodePath, qrContent);
-              console.log(
-                `预览二维码已生成，存储在:"${previewQrcodePath}"，二维码内容是：${qrContent}`,
-              );
+              this.logger.success("预览二维码已生成");
+              this.logger.detail("path", previewQrcodePath);
+              this.logger.detail("qr", qrContent);
               resolve(
                 this.createResult(true, {
                   qrCodeContent: qrContent,
@@ -83,8 +83,9 @@ export class SwanCI extends BaseCI<"mp-baidu"> {
 
   async upload() {
     const swanConfig = this.config.platformConfig;
-    console.log("start 上传体验版代码到百度后台");
-    console.log(`本次上传版本号为："${this.config.version}"，上传描述为："${this.config.desc}"`);
+    this.logger.start("上传体验版代码到百度后台");
+    this.logger.detail("version", this.config.version);
+    this.logger.detail("desc", this.config.desc);
 
     return new Promise<ReturnType<typeof this.createResult>>((resolve, reject) => {
       shell.exec(
@@ -99,9 +100,9 @@ export class SwanCI extends BaseCI<"mp-baidu"> {
 
               await printQrcode2Terminal(qrContent);
               await generateQrcodeImageFile(uploadQrcodePath, qrContent);
-              console.log(
-                `体验版二维码已生成，存储在:"${uploadQrcodePath}"，二维码内容是：${qrContent}`,
-              );
+              this.logger.success("体验版二维码已生成");
+              this.logger.detail("path", uploadQrcodePath);
+              this.logger.detail("qr", qrContent);
               resolve(
                 this.createResult(true, {
                   qrCodeContent: qrContent,

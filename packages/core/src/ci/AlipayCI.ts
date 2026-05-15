@@ -51,7 +51,7 @@ export class AlipayCI extends BaseCI<"mp-alipay"> {
   async open() {
     const alipayConfig = this.config.platformConfig;
     try {
-      console.log(`start 小程序开发者工具... ${this.config.projectPath}`);
+      this.logger.start("小程序开发者工具", this.config.projectPath);
       await this.minidev.minidev.startIde(
         Object.assign(
           { project: this.config.projectPath },
@@ -79,9 +79,9 @@ export class AlipayCI extends BaseCI<"mp-alipay"> {
       const qrcodeUrl = previewResult.qrcodeUrl;
       const qrcodeContent = await readQrcodeImageContent(qrcodeUrl);
       await generateQrcodeImageFile(previewQrcodePath, qrcodeContent);
-      console.log(
-        `预览版二维码已生成，存储在:"${previewQrcodePath}"，二维码内容是："${qrcodeContent}"`,
-      );
+      this.logger.success("预览版二维码已生成");
+      this.logger.detail("path", previewQrcodePath);
+      this.logger.detail("qr", qrcodeContent);
 
       return this.createResult(true, {
         qrCodeContent: qrcodeContent,
@@ -96,7 +96,7 @@ export class AlipayCI extends BaseCI<"mp-alipay"> {
 
   async upload() {
     const { clientType = "alipay", appid: appId, deleteVersion } = this.config.platformConfig;
-    console.log(`start 上传代码到阿里小程序后台 ${clientType}`);
+    this.logger.start("上传代码到阿里小程序后台", clientType);
 
     try {
       const lasterVersion = await this.minidev.minidev.app.getUploadedVersion({
@@ -105,7 +105,10 @@ export class AlipayCI extends BaseCI<"mp-alipay"> {
       });
 
       if (this.config.version && compareVersion(this.config.version, lasterVersion) <= 0) {
-        console.warn(`上传版本号 "${this.config.version}" 必须大于最新上传版本 "${lasterVersion}"`);
+        this.logger.warn(
+          "上传版本号必须大于最新上传版本",
+          `"${this.config.version}" <= "${lasterVersion}"`,
+        );
       }
 
       const result = await this.minidev.minidev.upload({
@@ -123,9 +126,9 @@ export class AlipayCI extends BaseCI<"mp-alipay"> {
         this.config.qrcodePath?.upload ?? path.join(this.config.projectPath, "upload.png");
       await printQrcode2Terminal(qrcodeContent);
       await generateQrcodeImageFile(uploadQrcodePath, qrcodeContent);
-      console.log(
-        `体验版二维码已生成，存储在:"${uploadQrcodePath}"，二维码内容是："${qrcodeContent}"`,
-      );
+      this.logger.success("体验版二维码已生成");
+      this.logger.detail("path", uploadQrcodePath);
+      this.logger.detail("qr", qrcodeContent);
 
       return this.createResult(true, {
         qrCodeContent: qrcodeContent,
