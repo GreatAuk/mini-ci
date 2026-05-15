@@ -23,7 +23,6 @@ uni build -p mp-weixin -- --preview --upload
 - `MiniCIDescContext.operation` 保留单个 action，因为动态 `desc` 在每次具体 action 执行时计算。
 - Vite 插件 `serve` 模式允许 `open` 和 `preview`；只要包含 `upload`，整体报错，不先执行其他 action。
 - 任一 action 执行失败时 fail-fast，后续 action 不再执行。
-- 设计文档只写入仓库，不执行 git 提交；提交需要用户单独授权。
 
 ## 命令语义
 

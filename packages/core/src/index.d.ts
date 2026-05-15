@@ -1,3 +1,31 @@
 export { runMiniCIWithConfig } from "./runMiniCIWithConfig";
-export { supportedOperations, supportedPlatforms, type AlipayClientType, type AlipayConfig, type JdConfig, type MiniCICompleteHook, type MiniCICompleteHookData, type MiniCIConfig, type MiniCIDescContext, type MiniCIDescFunction, type MiniCIErrorHook, type MiniCIErrorHookData, type MiniCIHooks, type MiniCIOperation, type MiniCIPlatform, type MiniCIResult, type MiniCISingleResult, type NormalizedMiniCIConfig, type NormalizedMiniCIConfigBase, type ParsedCliArgs, type PlatformConfigMap, type ProjectType, type RunMiniCIWithConfigOptions, type SwanConfig, type TTConfig, type WeappConfig, } from "./types";
+export { createLogger, isErrorLogged, markErrorLogged, type Logger } from "./runtime/logger";
+export {
+  supportedOperations,
+  supportedPlatforms,
+  type AlipayClientType,
+  type AlipayConfig,
+  type JdConfig,
+  type MiniCICompleteHook,
+  type MiniCICompleteHookData,
+  type MiniCIConfig,
+  type MiniCIDescContext,
+  type MiniCIDescFunction,
+  type MiniCIErrorHook,
+  type MiniCIErrorHookData,
+  type MiniCIHooks,
+  type MiniCIOperation,
+  type MiniCIPlatform,
+  type MiniCIResult,
+  type MiniCISingleResult,
+  type NormalizedMiniCIConfig,
+  type NormalizedMiniCIConfigBase,
+  type ParsedCliArgs,
+  type PlatformConfigMap,
+  type ProjectType,
+  type RunMiniCIWithConfigOptions,
+  type SwanConfig,
+  type TTConfig,
+  type WeappConfig,
+} from "./types";
 //# sourceMappingURL=index.d.ts.map

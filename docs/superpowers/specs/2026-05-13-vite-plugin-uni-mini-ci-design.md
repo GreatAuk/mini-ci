@@ -17,7 +17,6 @@
 - 插件模式下平台不解析 `-p/--platform`，直接读取 `process.env.UNI_PLATFORM`。
 - 插件模式下默认产物目录优先读取 options 中的 `projectPath`，否则读取 `process.env.UNI_OUTPUT_DIR`。
 - CLI 模式保持现有行为，通过 `--dev` 决定默认 `projectPath` 是 `dist/dev/<platform>` 还是 `dist/build/<platform>`。
-- 设计文档只写入仓库，不执行 git 提交；提交需要用户单独授权。
 
 ## 使用方式
 

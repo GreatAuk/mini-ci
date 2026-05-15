@@ -19,7 +19,6 @@
 - `qrCodeLocalPath` 和 `qrCodeContent` 在 hook 数据中是可选字段，失败时不强行填空字符串。
 - `onError` 覆盖 `runMiniCIWithConfig()` 内、已经拿到 `config.hooks` 之后的错误。
 - `onError` 不覆盖 CLI 参数解析失败和配置文件加载失败，因为这些错误发生时还没有可用的 `MiniCIConfig`。
-- 本设计文档只写入仓库，不执行 git 提交；提交需要用户单独授权。
 
 ## API 结构
 
