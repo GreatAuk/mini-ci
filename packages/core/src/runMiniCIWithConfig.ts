@@ -2,6 +2,7 @@ import { access } from "node:fs/promises";
 import { createCI } from "./ci/registry";
 import { loadPackageJson } from "./config/loadPackageJson";
 import { normalizeConfig } from "./config/normalize";
+import { createLogger, markErrorLogged } from "./runtime/logger";
 
 import type {
   MiniCICompleteHookData,
@@ -48,6 +49,38 @@ function toError(error: unknown): Error {
   }
 
   return new Error(String(error));
+}
+
+/** operation 展示文案 */
+const operationMessages: Record<MiniCIOperation, string> = {
+  open: "打开开发者工具",
+  preview: "上传开发版并生成预览码",
+  upload: "上传体验版并生成体验码",
+};
+
+/**
+ * 输出错误摘要并标记错误。
+ *
+ * @param input 错误上下文
+ */
+function logFailure(input: {
+  logger: ReturnType<typeof createLogger>;
+  error: Error;
+  operation?: MiniCIOperation;
+  platform?: RunMiniCIWithConfigOptions["args"]["platform"];
+}): void {
+  input.logger.error("执行失败");
+
+  if (input.operation) {
+    input.logger.detail("operation", input.operation);
+  }
+
+  if (input.platform) {
+    input.logger.detail("platform", input.platform);
+  }
+
+  input.logger.detail("error", input.error.message);
+  markErrorLogged(input.error);
 }
 
 /**
@@ -221,8 +254,10 @@ async function triggerErrorHook(
 export async function runMiniCIWithConfig(
   options: RunMiniCIWithConfigOptions,
 ): Promise<MiniCIResult> {
+  const logger = createLogger();
   const packageJson = await loadPackageJson(options.cwd);
   const results: MiniCIResult["results"] = [];
+  let didPrintHeader = false;
 
   for (const operation of options.args.operations) {
     /** 当前操作的归一化配置 */
@@ -238,9 +273,25 @@ export async function runMiniCIWithConfig(
         config: options.config,
         packageJson,
       });
+
+      if (!didPrintHeader) {
+        logger.header("minici", `${normalized.platform} · ${normalized.version}`);
+        logger.detail("projectPath", normalized.projectPath);
+        logger.detail("operations", options.args.operations.join(", "));
+        didPrintHeader = true;
+      }
+
+      logger.blank();
+      logger.group(operation, operationMessages[operation]);
     } catch (error) {
       /** 配置归一化错误 */
       const runtimeError = toError(error);
+      logFailure({
+        logger,
+        error: runtimeError,
+        operation,
+        platform: options.args.platform,
+      });
       await triggerErrorHook(
         options,
         createErrorHookData({
@@ -257,6 +308,12 @@ export async function runMiniCIWithConfig(
     } catch (error) {
       /** 项目路径错误 */
       const pathError = toError(error);
+      logFailure({
+        logger,
+        error: pathError,
+        operation,
+        platform: options.args.platform,
+      });
       await triggerErrorHook(
         options,
         createErrorHookData({
@@ -270,13 +327,19 @@ export async function runMiniCIWithConfig(
     }
 
     /** 当前平台 CI 实例 */
-    const ci = createCI(normalized);
+    const ci = createCI(normalized, logger);
 
     try {
       await ci.init();
     } catch (error) {
       /** 初始化错误 */
       const initError = toError(error);
+      logFailure({
+        logger,
+        error: initError,
+        operation,
+        platform: options.args.platform,
+      });
       await triggerErrorHook(
         options,
         createErrorHookData({
@@ -312,6 +375,12 @@ export async function runMiniCIWithConfig(
         } catch (hookError) {
           /** complete hook 错误 */
           const completeHookError = attachCause(toError(hookError), ciError);
+          logFailure({
+            logger,
+            error: completeHookError,
+            operation,
+            platform: options.args.platform,
+          });
           await triggerErrorHook(
             options,
             createErrorHookData({
@@ -325,6 +394,12 @@ export async function runMiniCIWithConfig(
         }
       }
 
+      logFailure({
+        logger,
+        error: ciError,
+        operation,
+        platform: options.args.platform,
+      });
       await triggerErrorHook(
         options,
         createErrorHookData({
@@ -351,6 +426,12 @@ export async function runMiniCIWithConfig(
       } catch (error) {
         /** complete hook 错误 */
         const hookError = toError(error);
+        logFailure({
+          logger,
+          error: hookError,
+          operation,
+          platform: options.args.platform,
+        });
         await triggerErrorHook(
           options,
           createErrorHookData({
@@ -365,8 +446,20 @@ export async function runMiniCIWithConfig(
       }
     }
 
+    if (result.qrCodeLocalPath) {
+      logger.success("二维码已保存");
+      logger.detail("path", result.qrCodeLocalPath);
+    }
+
+    if (result.qrCodeContent) {
+      logger.detail("qr", result.qrCodeContent);
+    }
+
     results.push(result);
   }
+
+  logger.blank();
+  logger.success("完成", `${results.length} 个操作执行成功`);
 
   const firstResult = results[0];
 

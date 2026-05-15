@@ -14,7 +14,7 @@ let failingMethod: MiniCIOperation | "init" | undefined;
 const tempDirs: string[] = [];
 
 vi.mock("../src/ci/registry", () => ({
-  createCI: (config: any) => ({
+  createCI: (config: any, logger: any) => ({
     init: vi.fn().mockImplementation(() => {
       if (failingMethod === "init") {
         throw new Error("init failed");
@@ -26,6 +26,7 @@ vi.mock("../src/ci/registry", () => ({
       }
 
       calls.push("open");
+      logger.success("打开开发者工具成功");
 
       return {
         success: true,
@@ -42,6 +43,7 @@ vi.mock("../src/ci/registry", () => ({
       }
 
       calls.push("preview");
+      logger.success("开发版上传成功", "10:24:12");
 
       return {
         success: true,
@@ -60,6 +62,7 @@ vi.mock("../src/ci/registry", () => ({
       }
 
       calls.push("upload");
+      logger.success("体验版上传成功", "10:24:16");
 
       return {
         success: true,
@@ -399,5 +402,49 @@ describe("runMiniCIWithConfig hooks", () => {
     expect(onPreviewComplete).toHaveBeenCalledTimes(1);
     expect(onUploadComplete).not.toHaveBeenCalled();
     expect(calls).toEqual([]);
+  });
+});
+
+/**
+ * 移除 ANSI 颜色控制字符。
+ *
+ * @param value 待处理文本
+ * @returns 无颜色控制字符的文本
+ */
+function stripAnsi(value: string): string {
+  return value.replace(/\u001b\[[0-9;]*m/g, "");
+}
+
+describe("runMiniCIWithConfig runner logs", () => {
+  test("多个操作输出整体头、operation 分组和成功摘要", async () => {
+    /** console.log mock */
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await runWithHooks(["preview", "upload"], {});
+
+    const lines = log.mock.calls.map(([line]) => stripAnsi(String(line)));
+    expect(lines).toContain("● minici mp-weixin · 1.0.0");
+    expect(lines).toContain("  operations preview, upload");
+    expect(lines).toContain("◇ preview 上传开发版并生成预览码");
+    expect(lines).toContain("◇ upload 上传体验版并生成体验码");
+    expect(lines).toContain("  ✓ 完成 2 个操作执行成功");
+
+    log.mockRestore();
+  });
+
+  test("CI 方法失败时输出一次失败摘要并标记错误", async () => {
+    /** console.log mock */
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    failingMethod = "preview";
+
+    await expect(runWithHooks(["preview"], {})).rejects.toThrow("preview failed");
+
+    const lines = log.mock.calls.map(([line]) => stripAnsi(String(line)));
+    expect(lines).toContain("✕ 执行失败");
+    expect(lines).toContain("  operation preview");
+    expect(lines).toContain("  platform mp-weixin");
+    expect(lines).toContain("  error preview failed");
+
+    log.mockRestore();
   });
 });

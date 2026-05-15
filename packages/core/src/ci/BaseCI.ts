@@ -1,12 +1,18 @@
+import { createLogger } from "../runtime/logger";
+
+import type { Logger } from "../runtime/logger";
 import type { MiniCIPlatform, MiniCISingleResult, NormalizedMiniCIConfig } from "../types";
 
 /** 平台 CI 基类 */
 export abstract class BaseCI<P extends MiniCIPlatform = MiniCIPlatform> {
   /** 运行时配置 */
   protected config: NormalizedMiniCIConfig<P>;
+  /** 日志实例 */
+  protected logger: Logger;
 
-  constructor(config: NormalizedMiniCIConfig<P>) {
+  constructor(config: NormalizedMiniCIConfig<P>, logger: Logger = createLogger()) {
     this.config = config;
+    this.logger = logger;
   }
 
   /**
