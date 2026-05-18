@@ -8,6 +8,13 @@ const calls: Array<{ method: string }> = [];
 /** 需要 mock 失败的操作 */
 let failingMethod: string | undefined;
 
+/** bumpp versionBump mock */
+const versionBump = vi.fn();
+
+vi.mock("bumpp", () => ({
+  versionBump: (options: unknown) => versionBump(options),
+}));
+
 vi.mock("../../core/src/ci/registry", () => ({
   createCI: (config: any) => ({
     init: vi.fn(),
@@ -97,6 +104,7 @@ async function createProjectDir(): Promise<string> {
 afterEach(async () => {
   calls.length = 0;
   failingMethod = undefined;
+  versionBump.mockReset();
   delete (globalThis as any).__miniciHookCalls__;
   await Promise.all(tempDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
 });
@@ -254,6 +262,57 @@ describe("runMiniCI", () => {
     ).rejects.toThrow("preview failed");
 
     expect(calls).toEqual([{ method: "open" }]);
+  });
+
+  test("CLI bump-only 不执行 CI action", async () => {
+    const cwd = await createProjectDir();
+    versionBump.mockResolvedValue({
+      currentVersion: "1.0.0",
+      newVersion: "1.0.1",
+      commit: false,
+      tag: false,
+      updatedFiles: ["package.json"],
+      skippedFiles: [],
+    });
+
+    const { runMiniCI } = await import("../src/index");
+    const result = await runMiniCI({
+      argv: ["--bump"],
+      cwd,
+    });
+
+    expect(calls).toEqual([]);
+    expect(result).toEqual({
+      success: true,
+      operations: [],
+      bump: expect.objectContaining({
+        currentVersion: "1.0.0",
+        newVersion: "1.0.1",
+      }),
+    });
+  });
+
+  test("CLI bump 加 upload 时使用 newVersion 执行 CI", async () => {
+    const cwd = await createProjectDir();
+    versionBump.mockResolvedValue({
+      currentVersion: "1.0.0",
+      newVersion: "1.0.1",
+      commit: false,
+      tag: false,
+      updatedFiles: ["package.json"],
+      skippedFiles: [],
+    });
+
+    const { runMiniCI } = await import("../src/index");
+    const result = await runMiniCI({
+      argv: ["--bump", "--upload", "--platform", "mp-weixin", "--version", "9.9.9"],
+      cwd,
+    });
+
+    expect(calls).toEqual([{ method: "upload" }]);
+    expect(result.operations).toEqual(["upload"]);
+    expect(result.version).toBe("1.0.1");
+    expect(result.results[0]?.version).toBe("1.0.1");
   });
 
   test("配置文件 hooks 会在 CLI preview 后触发", async () => {
