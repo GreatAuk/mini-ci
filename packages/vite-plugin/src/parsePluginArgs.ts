@@ -7,10 +7,12 @@ import type { MiniCIOperation } from "uni-mini-ci-core";
 export interface ParsedPluginArgs {
   /** 当前操作列表；空数组表示跳过插件执行 */
   operations: MiniCIOperation[];
+  /** 是否执行 bumpp 版本更新 */
+  bump?: boolean;
 }
 
 /** Vite 插件模式支持的参数名 */
-const allowedOptionNames = new Set(["open", "preview", "upload"]);
+const allowedOptionNames = new Set(["open", "preview", "upload", "bump"]);
 
 /**
  * 读取第一个透传分隔符后的插件参数。
@@ -62,7 +64,7 @@ export function parsePluginArgs(argv: string[]): ParsedPluginArgs {
 
   /** minimist 解析结果 */
   const options = minimist(pluginArgv, {
-    boolean: [...supportedOperations],
+    boolean: [...supportedOperations, "bump"],
     string: [],
     alias: {},
     "--": false,
@@ -76,12 +78,19 @@ export function parsePluginArgs(argv: string[]): ParsedPluginArgs {
 
   /** 已传入操作列表 */
   const operations = supportedOperations.filter((operation) => options[operation] === true);
+  /** 是否执行 bumpp 版本更新 */
+  const bump = options.bump === true;
 
-  if (operations.length === 0) {
+  if (bump && operations.length > 0 && !operations.includes("upload")) {
+    throw new Error("bump 搭配 CI 操作时必须包含 upload");
+  }
+
+  if (operations.length === 0 && !bump) {
     return { operations: [] };
   }
 
   return {
     operations,
+    ...(bump && { bump: true }),
   };
 }

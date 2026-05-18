@@ -147,4 +147,43 @@ describe("parseCliArgs", () => {
 
     expect(result).not.toHaveProperty("dev");
   });
+
+  test("解析 bump-only 时不要求 platform", () => {
+    expect(parseCliArgs(["--bump"])).toEqual({
+      operations: [],
+      bump: true,
+    });
+  });
+
+  test("bump-only 显式传入 platform 时校验并保留平台", () => {
+    expect(parseCliArgs(["--bump", "--platform", "mp-weixin"])).toEqual({
+      operations: [],
+      bump: true,
+      platform: "mp-weixin",
+    });
+  });
+
+  test("bump-only 显式传入非法 platform 时抛出明确错误", () => {
+    expect(() => parseCliArgs(["--bump", "--platform", "h5"])).toThrow("暂不支持平台：h5");
+  });
+
+  test("bump 搭配 open 但不含 upload 时抛出明确错误", () => {
+    expect(() => parseCliArgs(["--bump", "--open", "--platform", "mp-weixin"])).toThrow(
+      "bump 搭配 CI 操作时必须包含 upload",
+    );
+  });
+
+  test("bump 搭配 preview 但不含 upload 时抛出明确错误", () => {
+    expect(() => parseCliArgs(["--bump", "--preview", "--platform", "mp-weixin"])).toThrow(
+      "bump 搭配 CI 操作时必须包含 upload",
+    );
+  });
+
+  test("bump 搭配 upload 时合法", () => {
+    expect(parseCliArgs(["--bump", "--upload", "--platform", "mp-weixin"])).toEqual({
+      operations: ["upload"],
+      bump: true,
+      platform: "mp-weixin",
+    });
+  });
 });

@@ -51,4 +51,26 @@ describe("parsePluginArgs", () => {
       parsePluginArgs(["uni", "build", "-p", "mp-weixin", "--", "--upload", "--version", "1.0.0"]),
     ).toThrow("Vite 插件模式暂不支持参数：--version");
   });
+
+  test("解析 bump-only", () => {
+    expect(parsePluginArgs(["uni", "build", "-p", "mp-weixin", "--", "--bump"])).toEqual({
+      operations: [],
+      bump: true,
+    });
+  });
+
+  test("解析 bump 和 upload", () => {
+    expect(
+      parsePluginArgs(["uni", "build", "-p", "mp-weixin", "--", "--bump", "--upload"]),
+    ).toEqual({
+      operations: ["upload"],
+      bump: true,
+    });
+  });
+
+  test("bump 搭配 preview 但不含 upload 时抛出明确错误", () => {
+    expect(() =>
+      parsePluginArgs(["uni", "build", "-p", "mp-weixin", "--", "--bump", "--preview"]),
+    ).toThrow("bump 搭配 CI 操作时必须包含 upload");
+  });
 });

@@ -241,8 +241,10 @@ export interface PlatformConfigMap {
 export interface ParsedCliArgs {
   /** 当前操作列表 */
   operations: MiniCIOperation[];
-  /** 当前平台 */
-  platform: MiniCIPlatform;
+  /** 是否执行 bumpp 版本更新 */
+  bump?: boolean;
+  /** 当前平台；bump-only 时可为空 */
+  platform?: MiniCIPlatform;
   /** 项目产物目录 */
   projectPath?: string;
   /** 发布版本 */

@@ -27,6 +27,8 @@ interface ParsedOptions {
   upload?: unknown;
   /** 是否为开发构建 */
   dev?: unknown;
+  /** 是否执行 bumpp 版本更新 */
+  bump?: unknown;
 }
 
 /** 允许出现的 CAC 选项名 */
@@ -44,6 +46,7 @@ const allowedOptionNames = new Set([
   "preview",
   "upload",
   "dev",
+  "bump",
 ]);
 
 /**
@@ -112,7 +115,8 @@ function createCliParser(): CAC {
     .option("--desc <desc>", "发布描述")
     .option("--config <config>", "配置文件路径")
     .option("--cwd <cwd>", "当前工作目录")
-    .option("--dev", "标记为开发构建，默认 projectPath 使用 dist/dev/<platform>");
+    .option("--dev", "标记为开发构建，默认 projectPath 使用 dist/dev/<platform>")
+    .option("--bump", "使用 bumpp 更新版本号");
 
   return cli;
 }
@@ -142,33 +146,46 @@ export function parseCliArgs(argv: string[]): ParsedCliArgs {
   assertKnownOptions(options);
   /** 命令行传入的操作参数列表 */
   const operations = supportedOperations.filter((operation) => options[operation] === true);
+  /** 是否执行 bumpp 版本更新 */
+  const bump = options.bump === true;
 
-  if (operations.length === 0) {
+  if (operations.length === 0 && !bump) {
     throw new Error(
       "请指定操作，可选值：--open、--preview、--upload\n用法：minici --<operation> --platform <platform>",
     );
   }
 
+  if (bump && operations.length > 0 && !operations.includes("upload")) {
+    throw new Error("bump 搭配 CI 操作时必须包含 upload");
+  }
+
   /** 原始平台参数 */
   const rawPlatform = readStringOption("platform", options.platform);
 
-  if (!rawPlatform) {
+  if (rawPlatform && !isPlatform(rawPlatform)) {
     throw new Error(
-      "请指定平台，可选值：mp-weixin、mp-alipay、mp-baidu、mp-jd、mp-toutiao\n用法：minici --<operation> --platform <platform>",
+      `暂不支持平台：${rawPlatform}\n可选值：mp-weixin、mp-alipay、mp-baidu、mp-jd、mp-toutiao`,
     );
   }
 
-  if (!isPlatform(rawPlatform)) {
+  if (operations.length > 0 && !rawPlatform) {
     throw new Error(
-      `暂不支持平台：${rawPlatform}\n可选值：mp-weixin、mp-alipay、mp-baidu、mp-jd、mp-toutiao`,
+      "请指定平台，可选值：mp-weixin、mp-alipay、mp-baidu、mp-jd、mp-toutiao\n用法：minici --<operation> --platform <platform>",
     );
   }
 
   /** 已解析的 CLI 参数 */
   const cliArgs: ParsedCliArgs = {
     operations,
-    platform: rawPlatform,
   };
+
+  if (bump) {
+    cliArgs.bump = true;
+  }
+
+  if (rawPlatform) {
+    cliArgs.platform = rawPlatform;
+  }
   /** 项目产物目录 */
   const projectPath = readStringOption("projectPath", options.projectPath);
   /** 发布版本 */
