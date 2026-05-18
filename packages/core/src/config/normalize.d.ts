@@ -32,3 +32,4 @@ export interface NormalizeConfigInput<P extends MiniCIPlatform = MiniCIPlatform>
 export declare function normalizeConfig<P extends MiniCIPlatform>(
   input: NormalizeConfigInput<P>,
 ): Promise<NormalizedMiniCIConfig<P>>;
+export {};

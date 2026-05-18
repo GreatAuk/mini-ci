@@ -183,7 +183,7 @@ export function parseCliArgs(argv: string[]): ParsedCliArgs {
     cliArgs.bump = true;
   }
 
-  if (rawPlatform) {
+  if (rawPlatform && isPlatform(rawPlatform)) {
     cliArgs.platform = rawPlatform;
   }
   /** 项目产物目录 */

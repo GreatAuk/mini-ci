@@ -1,7 +1,13 @@
 import { describe, expect, expectTypeOf, test } from "vitest";
 import { defineConfig, supportedOperations, supportedPlatforms } from "../src/index";
 
-import type { MiniCIActionResult, MiniCIBumpOnlyResult, MiniCIBumpResult, NormalizedMiniCIConfig, PlatformConfigMap } from "../src/index";
+import type {
+  MiniCIActionResult,
+  MiniCIBumpOnlyResult,
+  MiniCIBumpResult,
+  NormalizedMiniCIConfig,
+  PlatformConfigMap,
+} from "../src/index";
 
 describe("public api", () => {
   test("defineConfig returns the same config object", () => {

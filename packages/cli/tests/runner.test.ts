@@ -3,6 +3,8 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
+import type { MiniCIActionResult } from "../src/index";
+
 /** mock createCI 返回的执行记录 */
 const calls: Array<{ method: string }> = [];
 /** 需要 mock 失败的操作 */
@@ -151,10 +153,10 @@ describe("runMiniCI", () => {
     const cwd = await createProjectDir();
 
     const { runMiniCI } = await import("../src/index");
-    const result = await runMiniCI({
+    const result = (await runMiniCI({
       argv: ["--upload", "--platform", "mp-weixin", "--version", "2.0.0", "--desc", "CLI 描述"],
       cwd,
-    });
+    })) as MiniCIActionResult;
 
     expect(result.version).toBe("2.0.0");
     expect(result.desc).toBe("CLI 描述");
@@ -220,10 +222,10 @@ describe("runMiniCI", () => {
     const cwd = await createProjectDir();
 
     const { runMiniCI } = await import("../src/index");
-    const result = await runMiniCI({
+    const result = (await runMiniCI({
       argv: ["--upload", "--open", "--preview", "--platform", "mp-weixin"],
       cwd,
-    });
+    })) as MiniCIActionResult;
 
     expect(calls).toEqual([{ method: "open" }, { method: "preview" }, { method: "upload" }]);
     expect(result.success).toBe(true);
@@ -235,10 +237,10 @@ describe("runMiniCI", () => {
     const cwd = await createProjectDir();
 
     const { runMiniCI } = await import("../src/index");
-    const result = await runMiniCI({
+    const result = (await runMiniCI({
       argv: ["--open", "--preview", "--upload", "--platform", "mp-weixin"],
       cwd,
-    });
+    })) as MiniCIActionResult;
 
     const descs = result.results.map((item) => item.desc);
     /** open 和 preview 不调用 desc 函数，回退到 packageJson.description 或默认描述 */
@@ -304,10 +306,10 @@ describe("runMiniCI", () => {
     });
 
     const { runMiniCI } = await import("../src/index");
-    const result = await runMiniCI({
+    const result = (await runMiniCI({
       argv: ["--bump", "--upload", "--platform", "mp-weixin", "--version", "9.9.9"],
       cwd,
-    });
+    })) as MiniCIActionResult;
 
     expect(calls).toEqual([{ method: "upload" }]);
     expect(result.operations).toEqual(["upload"]);
