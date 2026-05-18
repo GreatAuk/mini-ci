@@ -85,6 +85,18 @@ export default defineConfig({
 
 `normalizeConfig()`、`projectPath` 检查、`ci.init()` 等前置失败不会触发 complete hook，只触发 `onError`。
 
+### bumpOptions
+
+`bumpOptions` 复用 bumpp 的 `VersionBumpOptions`。文档只列出常用字段：
+
+| 字段 | 说明 |
+| --- | --- |
+| `release` | 发布类型或明确版本号，例如 `patch`、`minor`、`major`、`1.2.3` |
+| `commit` | 是否创建 git commit。mini-ci 默认 `false` |
+| `tag` | 是否创建 git tag。mini-ci 默认 `false` |
+| `push` | 是否推送 commit 和 tag。mini-ci 默认 `false` |
+| `confirm` | 是否让 bumpp 执行确认提示 |
+
 ## 命令行用法
 
 ```bash
@@ -98,6 +110,7 @@ minici --<operation> --platform <platform> [options]
 | `--open`    | 打开开发者工具             |
 | `--preview` | 上传开发版并生成预览二维码 |
 | `--upload`  | 上传体验版                 |
+| `--bump`    | 使用 bumpp 更新版本号。可单独执行；搭配 CI action 时必须包含 `--upload` |
 
 三个操作互斥，每次只能指定一个。
 
@@ -112,6 +125,7 @@ minici --<operation> --platform <platform> [options]
 | `--config <path>`       | 配置文件路径                                                |
 | `--cwd <path>`          | 项目根目录                                                  |
 | `--dev`                 | 标记为开发构建，默认 projectPath 使用 `dist/dev/<platform>` |
+| `--bump`                | 使用 bumpp 更新版本号。可单独执行；搭配 CI action 时必须包含 `--upload` |
 | `-h, --help`            | 显示帮助信息                                                |
 | `-v, --version`         | 显示版本号                                                  |
 
@@ -129,6 +143,12 @@ minici --open --platform mp-weixin --dev
 
 # 指定自定义配置文件
 minici --upload --platform mp-weixin --config ./config/ci.config.ts
+
+# 只更新版本号
+minici --bump
+
+# 更新版本号后上传
+minici --bump --upload --platform mp-weixin
 ```
 
 ### 参数优先级

@@ -44,6 +44,7 @@ CLI 的 `minici.config.ts` 和 Vite 插件的 `uniMiniCI(options)` 使用同一�
 | `desc`        | `string \| (ctx) => string` | 发布描述，不定义时默认取 package.json 中的 description；函数形式时 ctx: `{ operation, platform, version, projectPath, cwd, packageJson }`. |
 | `projectPath` | `string`                    | 构建产物目录，支持相对路径                                                                                                                 |
 | `hooks`       | `MiniCIHooks`               | 完成和错误 hook。支持 `onPreviewComplete`、`onUploadComplete`、`onError`，CLI 和 Vite 插件共享同一结构                                     |
+| `bumpOptions` | `VersionBumpOptions`        | bumpp 程序化 API 参数。mini-ci 默认 `commit/tag/push` 为 `false`，可在此显式覆盖 |
 | `mp-weixin`   | `WeappConfig`               | 微信小程序平台配置                                                                                                                         |
 | `mp-alipay`   | `AlipayConfig`              | 支付宝小程序平台配置                                                                                                                       |
 | `mp-baidu`    | `SwanConfig`                | 百度小程序平台配置                                                                                                                         |
@@ -119,6 +120,14 @@ export default defineConfig({
       console.error("CI 错误", result.operation, result.error.message);
     },
   },
+  // bumpp 配置（可选）：版本更新相关
+  bumpOptions: {
+    release: "patch",
+    commit: false,
+    tag: false,
+    push: false,
+    confirm: false,
+  },
   "mp-weixin": {
     appid: "wx1234567890abcdef",
     privateKeyPath: "./key/private.key",
@@ -134,6 +143,21 @@ minici --upload --platform mp-weixin
 minici --preview --platform mp-weixin
 minici --open   --platform mp-weixin --dev
 minici --open --preview --upload --platform mp-weixin
+```
+
+### 版本更新
+
+`--bump` 会在 CI action 前调用 bumpp 更新版本号。单独执行时不需要指定平台：
+
+```bash
+minici --bump
+```
+
+如果 `--bump` 搭配 CI action，必须包含 `--upload`：
+
+```bash
+minici --bump --upload --platform mp-weixin
+minici --bump --preview --upload --platform mp-weixin
 ```
 
 详细用法、参数说明和平台配置 → [docs/cli.md](docs/cli.md)
