@@ -1,6 +1,6 @@
 {
   "name": "uni-mini-ci-core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Shared mini program CI runtime for uni-mini-ci packages.",
   "license": "MIT",
   "author": "greatauk11@gmail.com",
