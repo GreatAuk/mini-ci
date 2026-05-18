@@ -1,10 +1,9 @@
 import { BaseCI } from "./BaseCI";
-/** 字节小程序 CI 适配器 */
-export declare class TTCI extends BaseCI<"mp-toutiao"> {
-  /** tt-ide-cli 模块 */
-  private tt;
+/** 百度小程序 CI 适配器 */
+export declare class SwanCI extends BaseCI<"mp-baidu"> {
+  /** swan-toolkit CLI 路径 */
+  private swanBin;
   init(): Promise<void>;
-  private beforeCheck;
   open(): Promise<import("uni-mini-ci-core").MiniCISingleResult>;
   preview(): Promise<import("uni-mini-ci-core").MiniCISingleResult>;
   upload(): Promise<import("uni-mini-ci-core").MiniCISingleResult>;

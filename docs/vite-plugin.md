@@ -77,6 +77,25 @@ uni build -p mp-weixin -- --open
 uni dev -p mp-weixin -- --open
 ```
 
+`--bump` 可以单独使用：
+
+```bash
+uni build -p mp-weixin -- --bump
+```
+
+`--bump` 搭配 CI action 时必须包含 `--upload`：
+
+```bash
+uni build -p mp-weixin -- --bump --upload
+```
+
+serve 模式不支持 bump：
+
+```bash
+# ❌ 报错 "bump 只支持 build 模式"
+uni dev -p mp-weixin -- --bump
+```
+
 > **注意**：`--` 是参数分隔符，它之后的参数不会被 uni 命令消费，而是透传给 Vite 插件。
 
 如果不传 `--` 后面的参数，插件不会执行任何操作，构建正常完成。
@@ -127,6 +146,8 @@ interface UniMiniCIPluginOptions {
   };
   /** hooks（可选）：preview/upload 完成或错误时触发 */
   hooks?: MiniCIHooks;
+  /** bumpp 程序化 API 参数 */
+  bumpOptions?: VersionBumpOptions;
   /** 微信小程序配置 */
   "mp-weixin"?: WeappConfig;
   /** 支付宝小程序配置 */
@@ -152,6 +173,7 @@ interface UniMiniCIPluginOptions {
 | 触发方式 | 手动执行命令                    | 构建完成自动触发                         |
 | 开发模式 | `--dev` 标记                    | 由 Vite `serve` 命令决定                 |
 | 操作指定 | `--open`/`--preview`/`--upload` | `-- --open`/`-- --preview`/`-- --upload` |
+| 版本更新 | `--bump`                    | `-- --bump`                            |
 
 CLI 和插件模式共享同一套 `hooks` 结构。区别只是配置来源不同：CLI 从 `minici.config.ts` 读取，插件从 `uniMiniCI(options)` 读取。
 

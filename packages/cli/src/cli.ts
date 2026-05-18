@@ -16,6 +16,7 @@ minici - uniapp 小程序 CI 工具
   --open       打开开发者工具
   --preview    上传开发版并预览
   --upload     上传体验版
+  --bump       使用 bumpp 更新版本号
 
 选项:
   --platform <platform>       小程序平台 (必填)
@@ -33,6 +34,8 @@ minici - uniapp 小程序 CI 工具
 示例:
   minici --upload --platform mp-weixin
   minici --preview --platform mp-alipay --projectPath dist/build/mp-alipay
+  minici --bump
+  minici --bump --upload --platform mp-weixin
 `.trim();
 
 /**

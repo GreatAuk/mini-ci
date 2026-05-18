@@ -1,10 +1,13 @@
 import { access } from "node:fs/promises";
+import { runBump } from "./bump/runBump";
 import { createCI } from "./ci/registry";
 import { loadPackageJson } from "./config/loadPackageJson";
 import { normalizeConfig } from "./config/normalize";
 import { createLogger, markErrorLogged } from "./runtime/logger";
 
 import type {
+  MiniCIActionResult,
+  MiniCIBumpResult,
   MiniCICompleteHookData,
   MiniCIErrorHookData,
   MiniCIOperation,
@@ -59,6 +62,29 @@ const operationMessages: Record<MiniCIOperation, string> = {
 };
 
 /**
+ * 校验共享 runner 入参。
+ *
+ * @param options 共享执行入口选项
+ */
+function assertRunArgs(options: RunMiniCIWithConfigOptions): void {
+  if (options.args.operations.length === 0 && !options.args.bump) {
+    throw new Error("请指定操作");
+  }
+
+  if (
+    options.args.bump &&
+    options.args.operations.length > 0 &&
+    !options.args.operations.includes("upload")
+  ) {
+    throw new Error("bump 搭配 CI 操作时必须包含 upload");
+  }
+
+  if (options.args.operations.length > 0 && !options.args.platform) {
+    throw new Error("请指定平台");
+  }
+}
+
+/**
  * 输出错误摘要并标记错误。
  *
  * @param input 错误上下文
@@ -66,10 +92,15 @@ const operationMessages: Record<MiniCIOperation, string> = {
 function logFailure(input: {
   logger: ReturnType<typeof createLogger>;
   error: Error;
+  stage?: string;
   operation?: MiniCIOperation;
   platform?: RunMiniCIWithConfigOptions["args"]["platform"];
 }): void {
   input.logger.error("执行失败");
+
+  if (input.stage) {
+    input.logger.detail("stage", input.stage);
+  }
 
   if (input.operation) {
     input.logger.detail("operation", input.operation);
@@ -254,19 +285,79 @@ async function triggerErrorHook(
 export async function runMiniCIWithConfig(
   options: RunMiniCIWithConfigOptions,
 ): Promise<MiniCIResult> {
-  const logger = createLogger();
-  const packageJson = await loadPackageJson(options.cwd);
-  const results: MiniCIResult["results"] = [];
-  let didPrintHeader = false;
+  assertRunArgs(options);
 
-  for (const operation of options.args.operations) {
+  const logger = createLogger();
+  let packageJson = await loadPackageJson(options.cwd);
+  const results: MiniCIActionResult["results"] = [];
+  let didPrintHeader = false;
+  let bumpResult: MiniCIBumpResult | undefined;
+
+  if (options.args.bump) {
+    logger.group("bump", "更新版本号");
+
+    try {
+      bumpResult = await runBump({
+        cwd: options.cwd,
+        bumpOptions: options.config.bumpOptions,
+        context: {
+          cwd: options.cwd,
+          platform: options.args.platform!,
+          operations: options.args.operations,
+        },
+      });
+      logger.detail("currentVersion", bumpResult.currentVersion);
+      logger.detail("newVersion", bumpResult.newVersion);
+      logger.detail("updatedFiles", bumpResult.updatedFiles.join(", ") || "-");
+      logger.detail("commit", bumpResult.commit || "false");
+      logger.detail("tag", bumpResult.tag || "false");
+      packageJson = await loadPackageJson(options.cwd);
+    } catch (error) {
+      /** bump 执行错误 */
+      const bumpError = toError(error);
+      logFailure({
+        logger,
+        error: bumpError,
+        stage: "bump",
+        platform: options.args.platform,
+      });
+      await triggerErrorHook(
+        options,
+        createErrorHookData({
+          error: bumpError,
+          platform: options.args.platform,
+        }),
+      );
+      throw bumpError;
+    }
+
+    if (options.args.operations.length === 0) {
+      logger.success("完成", "版本更新成功");
+      return {
+        success: true,
+        operations: [],
+        bump: bumpResult,
+      };
+    }
+  }
+
+  /** bump 后注入新版本的运行参数 */
+  const runtimeArgs = bumpResult
+    ? {
+        ...options.args,
+        version: bumpResult.newVersion,
+      }
+    : options.args;
+
+  for (const operation of runtimeArgs.operations) {
     /** 当前操作的归一化配置 */
     let normalized!: NormalizedMiniCIConfig;
 
     try {
       normalized = await normalizeConfig({
         args: {
-          ...options.args,
+          ...runtimeArgs,
+          platform: runtimeArgs.platform!,
           operation,
         },
         cwd: options.cwd,
@@ -277,7 +368,7 @@ export async function runMiniCIWithConfig(
       if (!didPrintHeader) {
         logger.header("minici", `${normalized.platform} · ${normalized.version}`);
         logger.detail("projectPath", normalized.projectPath);
-        logger.detail("operations", options.args.operations.join(", "));
+        logger.detail("operations", runtimeArgs.operations.join(", "));
         didPrintHeader = true;
       }
 
@@ -290,14 +381,14 @@ export async function runMiniCIWithConfig(
         logger,
         error: runtimeError,
         operation,
-        platform: options.args.platform,
+        platform: runtimeArgs.platform,
       });
       await triggerErrorHook(
         options,
         createErrorHookData({
           error: runtimeError,
           operation,
-          platform: options.args.platform,
+          platform: runtimeArgs.platform,
         }),
       );
       throw runtimeError;
@@ -312,14 +403,14 @@ export async function runMiniCIWithConfig(
         logger,
         error: pathError,
         operation,
-        platform: options.args.platform,
+        platform: runtimeArgs.platform,
       });
       await triggerErrorHook(
         options,
         createErrorHookData({
           error: pathError,
           operation,
-          platform: options.args.platform,
+          platform: runtimeArgs.platform,
           normalized,
         }),
       );
@@ -338,14 +429,14 @@ export async function runMiniCIWithConfig(
         logger,
         error: initError,
         operation,
-        platform: options.args.platform,
+        platform: runtimeArgs.platform,
       });
       await triggerErrorHook(
         options,
         createErrorHookData({
           error: initError,
           operation,
-          platform: options.args.platform,
+          platform: runtimeArgs.platform,
           normalized,
         }),
       );
@@ -379,14 +470,14 @@ export async function runMiniCIWithConfig(
             logger,
             error: completeHookError,
             operation,
-            platform: options.args.platform,
+            platform: runtimeArgs.platform,
           });
           await triggerErrorHook(
             options,
             createErrorHookData({
               error: completeHookError,
               operation,
-              platform: options.args.platform,
+              platform: runtimeArgs.platform,
               normalized,
             }),
           );
@@ -398,14 +489,14 @@ export async function runMiniCIWithConfig(
         logger,
         error: ciError,
         operation,
-        platform: options.args.platform,
+        platform: runtimeArgs.platform,
       });
       await triggerErrorHook(
         options,
         createErrorHookData({
           error: ciError,
           operation,
-          platform: options.args.platform,
+          platform: runtimeArgs.platform,
           normalized,
         }),
       );
@@ -430,14 +521,14 @@ export async function runMiniCIWithConfig(
           logger,
           error: hookError,
           operation,
-          platform: options.args.platform,
+          platform: runtimeArgs.platform,
         });
         await triggerErrorHook(
           options,
           createErrorHookData({
             error: hookError,
             operation,
-            platform: options.args.platform,
+            platform: runtimeArgs.platform,
             normalized,
             result,
           }),
@@ -456,11 +547,12 @@ export async function runMiniCIWithConfig(
 
   return {
     success: results.every((result) => result.success),
-    operations: options.args.operations,
+    operations: runtimeArgs.operations,
     platform: firstResult.platform,
     version: firstResult.version,
     desc: firstResult.desc,
     projectPath: firstResult.projectPath,
+    ...(bumpResult && { bump: bumpResult }),
     results,
   };
 }

@@ -85,11 +85,11 @@ export function uniMiniCI(options: UniMiniCIPluginOptions): Plugin {
     /** 插件透传参数 */
     const pluginArgs = parsePluginArgs(process.argv);
 
-    if (pluginArgs.operations.length === 0) {
+    if (pluginArgs.operations.length === 0 && !pluginArgs.bump) {
       return;
     }
 
-    // h5 等非小程序平台无需执行 CI 操作，直接跳过
+    // h5 等非小程序平台无需执行插件动作，直接跳过
     const rawPlatform = process.env.UNI_PLATFORM;
     if (rawPlatform && !isPlatform(rawPlatform)) {
       return;
@@ -98,8 +98,25 @@ export function uniMiniCI(options: UniMiniCIPluginOptions): Plugin {
     /** 是否为开发模式（NODE_ENV=development 或 serve 命令） */
     const isDev = resolvedConfig?.command === "serve" || process.env.NODE_ENV === "development";
 
+    if (isDev && pluginArgs.bump) {
+      throw new Error("bump 只支持 build 模式");
+    }
+
     if (isDev && pluginArgs.operations.includes("upload")) {
       throw new Error("upload 只支持 build 模式");
+    }
+
+    if (pluginArgs.operations.length === 0) {
+      // bump-only: no platform config needed
+      await runMiniCIWithConfig({
+        args: {
+          operations: [],
+          ...(pluginArgs.bump && { bump: true }),
+        },
+        cwd: resolvedConfig?.root || process.cwd(),
+        config: options,
+      });
+      return;
     }
 
     /** 当前平台 */
@@ -110,6 +127,7 @@ export function uniMiniCI(options: UniMiniCIPluginOptions): Plugin {
     await runMiniCIWithConfig({
       args: {
         operations: pluginArgs.operations,
+        ...(pluginArgs.bump && { bump: true }),
         platform,
         projectPath,
       },

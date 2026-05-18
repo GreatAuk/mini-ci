@@ -1,7 +1,13 @@
 import { describe, expect, expectTypeOf, test } from "vitest";
 import { defineConfig, supportedOperations, supportedPlatforms } from "../src/index";
 
-import type { NormalizedMiniCIConfig, PlatformConfigMap } from "../src/index";
+import type {
+  MiniCIActionResult,
+  MiniCIBumpOnlyResult,
+  MiniCIBumpResult,
+  NormalizedMiniCIConfig,
+  PlatformConfigMap,
+} from "../src/index";
 
 describe("public api", () => {
   test("defineConfig returns the same config object", () => {
@@ -58,5 +64,10 @@ describe("public api", () => {
 
     expectTypeOf<WeixinConfig["platform"]>().toEqualTypeOf<"mp-weixin">();
     expectTypeOf<WeixinConfig["platformConfig"]>().toEqualTypeOf<PlatformConfigMap["mp-weixin"]>();
+  });
+
+  test("导出 bump 结果类型", () => {
+    expectTypeOf<MiniCIBumpOnlyResult["bump"]>().toEqualTypeOf<MiniCIBumpResult>();
+    expectTypeOf<MiniCIActionResult["results"][number]>().toHaveProperty("operation");
   });
 });

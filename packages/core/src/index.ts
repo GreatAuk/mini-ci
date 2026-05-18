@@ -1,3 +1,4 @@
+export { runBump, type RunBumpOptions } from "./bump/runBump";
 export { runMiniCIWithConfig } from "./runMiniCIWithConfig";
 export { createLogger, isErrorLogged, markErrorLogged, type Logger } from "./runtime/logger";
 export {
@@ -6,6 +7,11 @@ export {
   type AlipayClientType,
   type AlipayConfig,
   type JdConfig,
+  type MiniCIActionResult,
+  type MiniCIBumpOnlyResult,
+  type MiniCIBumpResult,
+  type BumpOptionsContext,
+  type BumpOptionsInput,
   type MiniCICompleteHook,
   type MiniCICompleteHookData,
   type MiniCIConfig,

@@ -13,6 +13,13 @@ const originalUniOutputDir = process.env.UNI_OUTPUT_DIR;
 const originalNodeEnv = process.env.NODE_ENV;
 const tempDirs: string[] = [];
 
+/** bumpp versionBump mock */
+const versionBump = vi.fn();
+
+vi.mock("bumpp", () => ({
+  versionBump: (options: unknown) => versionBump(options),
+}));
+
 vi.mock("../../core/src/ci/registry", () => ({
   createCI: (config: any) => ({
     init: vi.fn(),
@@ -122,6 +129,7 @@ async function runWatchBuildPlugin(plugin: Plugin, root: string) {
 
 afterEach(async () => {
   calls.length = 0;
+  versionBump.mockReset();
   process.argv = originalArgv;
   if (originalUniPlatform === undefined) {
     delete process.env.UNI_PLATFORM;
@@ -431,6 +439,99 @@ describe("uniMiniCI", () => {
     await runServePlugin(plugin, cwd);
 
     expect(calls).toEqual([]);
+  });
+
+  test("build 模式执行 bump-only", async () => {
+    const { cwd, outputDir } = await createProject("build");
+    process.argv = ["node", "uni", "build", "-p", "mp-weixin", "--", "--bump"];
+    process.env.UNI_PLATFORM = "mp-weixin";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+    versionBump.mockResolvedValue({
+      currentVersion: "1.0.0",
+      newVersion: "1.0.1",
+      commit: false,
+      tag: false,
+      updatedFiles: ["package.json"],
+      skippedFiles: [],
+    });
+
+    const plugin = uniMiniCI({
+      bumpOptions: {
+        release: "patch",
+        confirm: false,
+      },
+    });
+
+    await runBuildPlugin(plugin, cwd);
+
+    expect(versionBump).toHaveBeenCalled();
+    expect(calls).toEqual([]);
+  });
+
+  test("serve 模式拒绝 bump-only", async () => {
+    const { cwd, outputDir } = await createProject("serve");
+    process.argv = ["node", "uni", "dev", "-p", "mp-weixin", "--", "--bump"];
+    process.env.UNI_PLATFORM = "mp-weixin";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+
+    const plugin = uniMiniCI({
+      bumpOptions: {
+        release: "patch",
+      },
+    });
+
+    await expect(runServePlugin(plugin, cwd)).rejects.toThrow("bump 只支持 build 模式");
+    expect(versionBump).not.toHaveBeenCalled();
+  });
+
+  test("h5 平台传入 bump 时跳过全部插件动作", async () => {
+    const { cwd, outputDir } = await createProject("build");
+    process.argv = ["node", "uni", "build", "--", "--bump"];
+    process.env.UNI_PLATFORM = "h5";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+
+    const plugin = uniMiniCI({
+      bumpOptions: {
+        release: "patch",
+      },
+    });
+
+    await runBuildPlugin(plugin, cwd);
+
+    expect(versionBump).not.toHaveBeenCalled();
+    expect(calls).toEqual([]);
+  });
+
+  test("build 模式 bump 加 upload 时先 bump 后 upload", async () => {
+    const { cwd, outputDir } = await createProject("build");
+    process.argv = ["node", "uni", "build", "-p", "mp-weixin", "--", "--bump", "--upload"];
+    process.env.UNI_PLATFORM = "mp-weixin";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+    versionBump.mockResolvedValue({
+      currentVersion: "1.0.0",
+      newVersion: "1.0.1",
+      commit: false,
+      tag: false,
+      updatedFiles: ["package.json"],
+      skippedFiles: [],
+    });
+
+    const plugin = uniMiniCI({
+      desc: "插件描述",
+      bumpOptions: {
+        release: "patch",
+        confirm: false,
+      },
+      "mp-weixin": {
+        appid: "wx-appid",
+        privateKeyPath: "key/private.key",
+      },
+    });
+
+    await runBuildPlugin(plugin, cwd);
+
+    expect(versionBump).toHaveBeenCalled();
+    expect(calls).toEqual([{ method: "upload", projectPath: outputDir, platform: "mp-weixin" }]);
   });
 
   test("hooks 会通过插件配置透传到共享 runner", async () => {

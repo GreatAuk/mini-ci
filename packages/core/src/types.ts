@@ -1,3 +1,20 @@
+import type { VersionBumpOptions } from "bumpp";
+
+/** bumpOptions 函数形式接收的上下文 */
+export interface BumpOptionsContext {
+  /** 当前工作目录 */
+  cwd: string;
+  /** 目标平台 */
+  platform: MiniCIPlatform;
+  /** 要执行的操作列表 */
+  operations: MiniCIOperation[];
+}
+
+/** bumpOptions 支持对象或返回对象的函数（同步/异步） */
+export type BumpOptionsInput =
+  | VersionBumpOptions
+  | ((ctx: BumpOptionsContext) => VersionBumpOptions | Promise<VersionBumpOptions>);
+
 /** 支持的 CLI 操作列表 */
 export const supportedOperations = ["open", "preview", "upload"] as const;
 
@@ -211,6 +228,8 @@ export interface MiniCIConfig {
   };
   /** minici hooks 配置 */
   hooks?: MiniCIHooks;
+  /** bumpp 程序化 API 参数，支持对象或动态函数 */
+  bumpOptions?: BumpOptionsInput;
   /** 微信小程序配置 */
   "mp-weixin"?: WeappConfig;
   /** 支付宝小程序配置 */
@@ -241,8 +260,10 @@ export interface PlatformConfigMap {
 export interface ParsedCliArgs {
   /** 当前操作列表 */
   operations: MiniCIOperation[];
-  /** 当前平台 */
-  platform: MiniCIPlatform;
+  /** 是否执行 bumpp 版本更新 */
+  bump?: boolean;
+  /** 当前平台；bump-only 时可为空 */
+  platform?: MiniCIPlatform;
   /** 项目产物目录 */
   projectPath?: string;
   /** 发布版本 */
@@ -311,8 +332,36 @@ export interface MiniCISingleResult {
   qrCodeContent?: string;
 }
 
-/** minici 执行聚合结果 */
-export interface MiniCIResult {
+/** bumpp 执行结果 */
+export interface MiniCIBumpResult {
+  /** 是否执行成功 */
+  success: boolean;
+  /** 原版本号 */
+  currentVersion: string;
+  /** 新版本号 */
+  newVersion: string;
+  /** git commit 信息；未提交时为 false */
+  commit: string | false;
+  /** git tag 信息；未打 tag 时为 false */
+  tag: string | false;
+  /** 实际更新的文件 */
+  updatedFiles: string[];
+  /** 未包含旧版本号而跳过的文件 */
+  skippedFiles: string[];
+}
+
+/** 只执行 bump 时的返回值 */
+export interface MiniCIBumpOnlyResult {
+  /** 是否执行成功 */
+  success: true;
+  /** bump-only 没有 CI action */
+  operations: [];
+  /** bump 执行结果 */
+  bump: MiniCIBumpResult;
+}
+
+/** 执行 CI action 时的返回值 */
+export interface MiniCIActionResult {
   /** 是否全部执行成功 */
   success: boolean;
   /** 当前操作列表 */
@@ -325,9 +374,14 @@ export interface MiniCIResult {
   desc: string;
   /** 当前项目目录 */
   projectPath: string;
+  /** bump 执行结果 */
+  bump?: MiniCIBumpResult;
   /** 每个 action 的执行结果 */
   results: MiniCISingleResult[];
 }
+
+/** minici 执行聚合结果 */
+export type MiniCIResult = MiniCIBumpOnlyResult | MiniCIActionResult;
 
 /** 共享 minici 执行入口选项 */
 export interface RunMiniCIWithConfigOptions {

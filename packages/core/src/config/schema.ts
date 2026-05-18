@@ -3,6 +3,7 @@ import { supportedPlatforms } from "../types";
 
 import type {
   AlipayClientType,
+  BumpOptionsInput,
   MiniCICompleteHook,
   MiniCIConfig,
   MiniCIDescFunction,
@@ -173,6 +174,16 @@ const hooksSchema = z
   .strict()
   .optional();
 
+/** bumpp 配置 schema：支持对象或函数 */
+const bumpOptionsSchema = z
+  .custom<BumpOptionsInput>(
+    (value) =>
+      typeof value === "function" ||
+      (typeof value === "object" && value !== null && !Array.isArray(value)),
+    "bumpOptions 必须是对象或函数",
+  )
+  .optional();
+
 /** minici 配置文件 schema */
 export const miniciConfigSchema = z
   .object({
@@ -186,6 +197,8 @@ export const miniciConfigSchema = z
     qrcodePath: qrcodePathSchema,
     /** minici hooks 配置 */
     hooks: hooksSchema,
+    /** bumpp 程序化 API 参数 */
+    bumpOptions: bumpOptionsSchema,
     /** 微信小程序配置 */
     "mp-weixin": weappConfigSchema.optional(),
     /** 支付宝小程序配置 */
