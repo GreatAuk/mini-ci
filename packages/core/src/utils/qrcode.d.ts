@@ -18,4 +18,3 @@ export declare function printQrcode2Terminal(content: string): Promise<void>;
  * @param content 二维码文本内容
  */
 export declare function generateQrcodeImageFile(filePath: string, content: string): Promise<void>;
-//# sourceMappingURL=qrcode.d.ts.map

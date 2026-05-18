@@ -14,4 +14,3 @@ export declare function resolveNpmSync(pluginName: string, root: string): string
  * @returns 加载后的模块
  */
 export declare function getNpmPkgSync<T = unknown>(npmName: string, root: string): T;
-//# sourceMappingURL=npm.d.ts.map

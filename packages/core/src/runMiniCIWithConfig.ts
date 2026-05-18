@@ -446,15 +446,6 @@ export async function runMiniCIWithConfig(
       }
     }
 
-    if (result.qrCodeLocalPath) {
-      logger.success("二维码已保存");
-      logger.detail("path", result.qrCodeLocalPath);
-    }
-
-    if (result.qrCodeContent) {
-      logger.detail("qr", result.qrCodeContent);
-    }
-
     results.push(result);
   }
 
