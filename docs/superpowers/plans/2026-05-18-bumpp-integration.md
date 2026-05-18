@@ -1350,7 +1350,7 @@ git commit -m "feat(vite-plugin): support bump flag"
 在 `README.md` 的配置表中新增：
 
 ```md
-| `bumpOptions` | `VersionBumpOptions`        | bumpp 程序化 API 参数。mini-ci 默认 `commit/tag/push` 为 `false`，可在此显式覆盖 |
+| `bumpOptions` | `VersionBumpOptions`        | bumpp 程序化 API 参数。mini-ci 默认 `commit` 为 `true`、`tag/push` 为 `false`，可在此显式覆盖 |
 ```
 
 在 CLI 示例附近新增：

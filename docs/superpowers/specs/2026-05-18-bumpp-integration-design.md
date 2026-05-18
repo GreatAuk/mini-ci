@@ -13,7 +13,7 @@
 - `--bump` 是 boolean 开关，不接收 release 参数。
 - 具体 bumpp 行为来自 `MiniCIConfig.bumpOptions`，其中 `release` 等字段复用 bumpp 的 `VersionBumpOptions`。
 - 未配置 `bumpOptions.release` 时，保留 bumpp 默认行为，即按其交互式 prompt 处理。
-- mini-ci 层提供安全默认：`commit: false`、`tag: false`、`push: false`。用户可以在 `bumpOptions` 中显式覆盖。
+- mini-ci 层提供安全默认：`commit: true`、`tag: false`、`push: false`。用户可以在 `bumpOptions` 中显式覆盖。
 - `--bump` 可以单独执行，形成 bump-only 流程。
 - bump-only 不要求 `--platform`，也不读取平台配置。
 - bump-only 如果显式传入 `--platform`，仍校验平台值是否合法；合法平台不会触发平台配置读取。
@@ -271,7 +271,7 @@ bumpp 执行错误：
 
 `packages/core/tests`：
 
-- mock `versionBump()`，验证默认传入 `commit: false`、`tag: false`、`push: false`、`cwd`。
+- mock `versionBump()`，验证默认传入 `commit: true`、`tag: false`、`push: false`、`cwd`。
 - 验证 `bumpOptions` 显式配置可覆盖安全默认值。
 - 验证 bump-only 不校验平台配置、不校验 projectPath。
 - 验证 bump + upload 使用 `newVersion` 作为 CI version。
@@ -300,7 +300,7 @@ bumpp 执行错误：
 - CLI 和插件参数表新增 `--bump`。
 - 配置表新增 `bumpOptions`，说明复用 bumpp `VersionBumpOptions`。
 - 示例只列关键配置：`release`、`commit`、`tag`、`push`、`confirm`。
-- 明确 mini-ci 默认 `commit/tag/push` 为 `false`，不同于 bumpp 原生默认。
+- 明确 mini-ci 默认 `commit` 为 `true`、`tag/push` 为 `false`，不同于 bumpp 原生默认。
 - 明确 `--bump` 搭配 action 必须包含 `--upload`。
 - 明确 bump-only 不需要 platform。
 - 明确插件非小程序平台会跳过全部插件动作，包括 bump。
@@ -313,6 +313,6 @@ bumpp 执行错误：
 - Vite 插件 serve 模式拒绝 bump。
 - Vite 插件非小程序平台跳过 bump 和 CI action。
 - 启用 bump 后 CI 发布版本使用 bumpp 返回的 `newVersion`。
-- mini-ci 默认禁用 bumpp 的 commit、tag、push，用户可通过 `bumpOptions` 显式打开。
+- mini-ci 默认启用 bumpp 的 commit、禁用 tag 和 push，用户可通过 `bumpOptions` 显式覆盖。
 - `MiniCIConfig.bumpOptions` 类型复用 `VersionBumpOptions`。
 - `MiniCIResult` 能准确表达 bump-only 与 bump + action 两种结果。

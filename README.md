@@ -1,6 +1,6 @@
 # uni-mini-ci
 
-uniapp 小程序 CI 工具集，在 `uni build` 完成后自动执行打开开发者工具、上传开发版预览、上传体验版等操作。提供 **CLI** 和 **Vite 插件**（推荐）两种使用方式。
+uniapp 小程序 CI 工具集，在 `uni build` 完成后自动执行打开开发者工具、上传开发版预览、上传体验版、更新版本号等操作。提供 **CLI** 和 **Vite 插件**（推荐）两种使用方式。
 
 ## 支持的平台
 
@@ -26,11 +26,12 @@ pnpm add -D tt-ide-cli        # 抖音
 
 两种使用方式均支持以下三个操作：
 
-| 操作        | 说明                       |
-| ----------- | -------------------------- |
-| `--open`    | 打开开发者工具并打开项目   |
-| `--preview` | 上传开发版并生成预览二维码 |
-| `--upload`  | 上传体验版并生成预览二维码 |
+| 操作        | 说明                                                                                                      |
+| ----------- | --------------------------------------------------------------------------------------------------------- |
+| `--open`    | 打开开发者工具并打开项目                                                                                  |
+| `--preview` | 上传开发版并生成预览二维码（等同于点击微信开发者工具中的“预览”按钮）                                      |
+| `--upload`  | 上传体验版并生成预览二维码 (等同于点击微信开发者工具中的“上传”按钮)                                       |
+| `--bump`    | 在执行 CI 操作前调用 bumpp 交互式的更新版本号 -> 创建 git commit 和 tag -> git push（适用于发布生产版本） |
 
 `--open`、`--preview`、`--upload` 可以组合使用；组合时执行顺序固定为 `open -> preview -> upload`，不受命令行书写顺序影响。
 
@@ -38,18 +39,18 @@ pnpm add -D tt-ide-cli        # 抖音
 
 CLI 的 `minici.config.ts` 和 Vite 插件的 `uniMiniCI(options)` 使用同一套配置结构：
 
-| 字段          | 类型                        | 说明                                                                                                                                       |
-| ------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `version`     | `string`                    | 发布版本号，不定义时默认读取 `package.json` 中的 `version`                                                                                 |
-| `desc`        | `string \| (ctx) => string` | 发布描述，不定义时默认取 package.json 中的 description；函数形式时 ctx: `{ operation, platform, version, projectPath, cwd, packageJson }`. |
-| `projectPath` | `string`                    | 构建产物目录，支持相对路径                                                                                                                 |
-| `hooks`       | `MiniCIHooks`               | 完成和错误 hook。支持 `onPreviewComplete`、`onUploadComplete`、`onError`，CLI 和 Vite 插件共享同一结构                                     |
-| `bumpOptions` | `VersionBumpOptions`        | bumpp 程序化 API 参数。mini-ci 默认 `commit/tag/push` 为 `false`，可在此显式覆盖 |
-| `mp-weixin`   | `WeappConfig`               | 微信小程序平台配置                                                                                                                         |
-| `mp-alipay`   | `AlipayConfig`              | 支付宝小程序平台配置                                                                                                                       |
-| `mp-baidu`    | `SwanConfig`                | 百度小程序平台配置                                                                                                                         |
-| `mp-jd`       | `JdConfig`                  | 京东小程序平台配置                                                                                                                         |
-| `mp-toutiao`  | `TTConfig`                  | 抖音小程序平台配置                                                                                                                         |
+| 字段          | 类型                                                                                                     | 说明                                                                                                                                       |
+| ------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `version`     | `string`                                                                                                 | 发布版本号，不定义时默认读取 `package.json` 中的 `version`                                                                                 |
+| `desc`        | `string \| (ctx) => string`                                                                              | 发布描述，不定义时默认取 package.json 中的 description；函数形式时 ctx: `{ operation, platform, version, projectPath, cwd, packageJson }`. |
+| `projectPath` | `string`                                                                                                 | 构建产物目录，支持相对路径                                                                                                                 |
+| `hooks`       | `MiniCIHooks`                                                                                            | 完成和错误 hook。支持 `onPreviewComplete`、`onUploadComplete`、`onError`，CLI 和 Vite 插件共享同一结构                                     |
+| `bumpOptions` | `VersionBumpOptions \| ((ctx: BumpOptionsContext) => VersionBumpOptions \| Promise<VersionBumpOptions>)` | bumpp 程序化 API 参数。mini-ci 默认 `commit` 为 `true`、`tag/push` 为 `false`，可在此显式覆盖                                                           |
+| `mp-weixin`   | `WeappConfig`                                                                                            | 微信小程序平台配置                                                                                                                         |
+| `mp-alipay`   | `AlipayConfig`                                                                                           | 支付宝小程序平台配置                                                                                                                       |
+| `mp-baidu`    | `SwanConfig`                                                                                             | 百度小程序平台配置                                                                                                                         |
+| `mp-jd`       | `JdConfig`                                                                                               | 京东小程序平台配置                                                                                                                         |
+| `mp-toutiao`  | `TTConfig`                                                                                               | 抖音小程序平台配置                                                                                                                         |
 
 各平台配置字段的详细说明见对应使用文档。
 
@@ -122,11 +123,9 @@ export default defineConfig({
   },
   // bumpp 配置（可选）：版本更新相关
   bumpOptions: {
-    release: "patch",
-    commit: false,
-    tag: false,
+    commit: true,
+    tag: true,
     push: false,
-    confirm: false,
   },
   "mp-weixin": {
     appid: "wx1234567890abcdef",
@@ -169,14 +168,17 @@ minici --bump --preview --upload --platform mp-weixin
 ```json
 {
   "scripts": {
-    // 构建生产包（测试接口） -> 终端显示预览二维码。（等同 `build` 生产包后，点击微信开发工具的『预览』按钮）
+    // [开发] 运行开发模式 -> 自动打开微信开发者工具并打开项目
+    "dev:mp-weixin": "uni dev -p mp-weixin -- --open",
+
+    // [测试] 构建生产包（测试接口） -> 终端显示预览二维码。（等同 `build` 生产包后，点击微信开发工具的『预览』按钮）
     "build:mp-weixin:preview:test": "uni build -p mp-weixin --mode test -- --preview",
 
-    // 构建生产包（生产接口） -> 上传代码到微信控制台作为开发版本 -> 终端显示预览二维码
+    // [测试] 构建生产包（生产接口） -> 上传代码到微信控制台作为开发版本 -> 终端显示预览二维码
     "build:mp-weixin:upload": "uni build -p mp-weixin -- --upload",
 
-    // 运行开发模式 -> 自动打开微信开发者工具并打开项目
-    "dev:mp-weixin": "uni dev -p mp-weixin -- --open"
+    // [上线] 更新版本号，创建 git commit 和 tag -> 构建生产包（生产接口） -> 上传代码到微信控制台作为开发版本 -> 终端显示预览二维码
+    "build:mp-weixin:upload": "uni build -p mp-weixin -- --upload --bump"
   }
 }
 ```

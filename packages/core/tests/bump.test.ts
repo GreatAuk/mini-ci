@@ -33,11 +33,11 @@ afterEach(async () => {
 });
 
 describe("runBump", () => {
-  test("默认禁用 commit tag push 并强制使用传入 cwd", async () => {
+  test("默认启用 commit、禁用 tag push 并强制使用传入 cwd", async () => {
     versionBump.mockResolvedValue({
       currentVersion: "1.0.0",
       newVersion: "1.0.1",
-      commit: false,
+      commit: "chore: release v1.0.1",
       tag: false,
       updatedFiles: ["package.json"],
       skippedFiles: [],
@@ -52,7 +52,7 @@ describe("runBump", () => {
     });
 
     expect(versionBump).toHaveBeenCalledWith({
-      commit: false,
+      commit: true,
       tag: false,
       push: false,
       release: "patch",
@@ -62,7 +62,7 @@ describe("runBump", () => {
       success: true,
       currentVersion: "1.0.0",
       newVersion: "1.0.1",
-      commit: false,
+      commit: "chore: release v1.0.1",
       tag: false,
       updatedFiles: ["package.json"],
       skippedFiles: [],
@@ -124,7 +124,7 @@ describe("runBump", () => {
       operations: ["preview", "upload"],
     });
     expect(versionBump).toHaveBeenCalledWith({
-      commit: false,
+      commit: true,
       tag: false,
       push: false,
       release: "patch",

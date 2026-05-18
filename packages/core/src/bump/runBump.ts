@@ -33,7 +33,7 @@ export async function runBump(options: RunBumpOptions): Promise<MiniCIBumpResult
 
   /** bumpp 原始执行结果 */
   const result = await versionBump({
-    commit: false,
+    commit: true,
     tag: false,
     push: false,
     ...resolved,
