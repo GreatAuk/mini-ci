@@ -147,7 +147,9 @@ interface UniMiniCIPluginOptions {
   /** hooks（可选）：preview/upload 完成或错误时触发 */
   hooks?: MiniCIHooks;
   /** bumpp 程序化 API 参数 */
-  bumpOptions?: VersionBumpOptions;
+  bumpOptions?:
+    | VersionBumpOptions
+    | ((ctx: BumpOptionsContext) => VersionBumpOptions | Promise<VersionBumpOptions>);
   /** 微信小程序配置 */
   "mp-weixin"?: WeappConfig;
   /** 支付宝小程序配置 */
@@ -173,7 +175,7 @@ interface UniMiniCIPluginOptions {
 | 触发方式 | 手动执行命令                    | 构建完成自动触发                         |
 | 开发模式 | `--dev` 标记                    | 由 Vite `serve` 命令决定                 |
 | 操作指定 | `--open`/`--preview`/`--upload` | `-- --open`/`-- --preview`/`-- --upload` |
-| 版本更新 | `--bump`                    | `-- --bump`                            |
+| 版本更新 | `--bump`                        | `-- --bump`                              |
 
 CLI 和插件模式共享同一套 `hooks` 结构。区别只是配置来源不同：CLI 从 `minici.config.ts` 读取，插件从 `uniMiniCI(options)` 读取。
 

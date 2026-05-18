@@ -39,6 +39,9 @@ export default defineConfig({
         rl.close();
         return desc;
       },
+      bumpOptions: {
+        commit: true,
+      },
       "mp-weixin": {
         appid: config["mp-weixin"].appid,
         privateKeyPath: config["mp-weixin"].privateKeyPath,

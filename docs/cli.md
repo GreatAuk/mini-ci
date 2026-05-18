@@ -60,43 +60,6 @@ export default defineConfig({
 });
 ```
 
-### 配置字段
-
-| 字段          | 类型                                    | 说明                                                                                                                                                                                      |
-| ------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `version`     | `string`                                | 发布版本号。默认读取 `package.json` 中的 `version`                                                                                                                                        |
-| `desc`        | `string \| (ctx) => string`             | 发布描述。函数形式接收 `{ operation, platform, version, projectPath, cwd, packageJson }`。**注意：函数形式仅在 `upload` 操作时调用**，`open`/`preview` 操作会跳过函数调用并回退到默认描述 |
-| `projectPath` | `string`                                | 构建产物目录。支持相对路径（相对 cwd），不填时为 `dist/build/<platform>`                                                                                                                  |
-| `qrcodePath`  | `{ preview?: string; upload?: string }` | 二维码图片保存路径。支持相对路径（相对 cwd）或绝对路径，不填时各平台使用默认路径（`<projectPath>/preview.jpg` 等）                                                                        |
-| `hooks`       | `MiniCIHooks`                           | 完成和错误 hook。`onPreviewComplete` / `onUploadComplete` 在对应 CI 方法成功和失败时触发；`onError` 在共享 runner 捕获错误时触发                                                          |
-| `mp-weixin`   | `WeappConfig`                           | 微信小程序平台配置                                                                                                                                                                        |
-| `mp-alipay`   | `AlipayConfig`                          | 支付宝小程序平台配置                                                                                                                                                                      |
-| `mp-baidu`    | `SwanConfig`                            | 百度小程序平台配置                                                                                                                                                                        |
-| `mp-jd`       | `JdConfig`                              | 京东小程序平台配置                                                                                                                                                                        |
-| `mp-toutiao`  | `TTConfig`                              | 抖音小程序平台配置                                                                                                                                                                        |
-
-### hooks
-
-`hooks` 可用于通知、日志上报、二维码后处理等场景：
-
-- `onPreviewComplete`：进入 `preview` CI 方法后，成功或失败都会触发。
-- `onUploadComplete`：进入 `upload` CI 方法后，成功或失败都会触发。
-- `onError`：`runMiniCIWithConfig()` 内捕获到错误后触发，包括前置失败、`open` 失败、`preview/upload` 失败和 hook 自身失败。
-
-`normalizeConfig()`、`projectPath` 检查、`ci.init()` 等前置失败不会触发 complete hook，只触发 `onError`。
-
-### bumpOptions
-
-`bumpOptions` 复用 bumpp 的 `VersionBumpOptions`。文档只列出常用字段：
-
-| 字段 | 说明 |
-| --- | --- |
-| `release` | 发布类型或明确版本号，例如 `patch`、`minor`、`major`、`1.2.3` |
-| `commit` | 是否创建 git commit。mini-ci 默认 `false` |
-| `tag` | 是否创建 git tag。mini-ci 默认 `false` |
-| `push` | 是否推送 commit 和 tag。mini-ci 默认 `false` |
-| `confirm` | 是否让 bumpp 执行确认提示 |
-
 ## 命令行用法
 
 ```bash
@@ -105,29 +68,27 @@ minici --<operation> --platform <platform> [options]
 
 ### 操作
 
-| 操作        | 说明                       |
-| ----------- | -------------------------- |
-| `--open`    | 打开开发者工具             |
-| `--preview` | 上传开发版并生成预览二维码 |
-| `--upload`  | 上传体验版                 |
+| 操作        | 说明                                                                    |
+| ----------- | ----------------------------------------------------------------------- |
+| `--open`    | 打开开发者工具                                                          |
+| `--preview` | 上传开发版并生成预览二维码                                              |
+| `--upload`  | 上传体验版                                                              |
 | `--bump`    | 使用 bumpp 更新版本号。可单独执行；搭配 CI action 时必须包含 `--upload` |
-
-三个操作互斥，每次只能指定一个。
 
 ### 选项
 
-| 选项                    | 说明                                                        |
-| ----------------------- | ----------------------------------------------------------- |
-| `--platform <platform>` | 目标平台（必填）                                            |
-| `--projectPath <path>`  | 构建产物目录                                                |
-| `--version <version>`   | 发布版本号                                                  |
-| `--desc <desc>`         | 发布描述                                                    |
-| `--config <path>`       | 配置文件路径                                                |
-| `--cwd <path>`          | 项目根目录                                                  |
-| `--dev`                 | 标记为开发构建，默认 projectPath 使用 `dist/dev/<platform>` |
+| 选项                    | 说明                                                                    |
+| ----------------------- | ----------------------------------------------------------------------- |
+| `--platform <platform>` | 目标平台（open, preview, upload 时必填）                                |
+| `--projectPath <path>`  | 构建产物目录                                                            |
+| `--version <version>`   | 发布版本号                                                              |
+| `--desc <desc>`         | 发布描述                                                                |
+| `--config <path>`       | 配置文件路径                                                            |
+| `--cwd <path>`          | 项目根目录                                                              |
+| `--dev`                 | 标记为开发构建，默认 projectPath 使用 `dist/dev/<platform>`             |
 | `--bump`                | 使用 bumpp 更新版本号。可单独执行；搭配 CI action 时必须包含 `--upload` |
-| `-h, --help`            | 显示帮助信息                                                |
-| `-v, --version`         | 显示版本号                                                  |
+| `-h, --help`            | 显示帮助信息                                                            |
+| `-v, --version`         | 显示版本号                                                              |
 
 ### 示例
 
@@ -164,40 +125,6 @@ minici --bump --upload --platform mp-weixin
 ```bash
 # 构建后上传
 uni build -p mp-weixin && minici --upload --platform mp-weixin
-
-# 开发模式打开工具
-uni dev -p mp-weixin && minici --open --platform mp-weixin --dev
 ```
 
 如果希望构建完自动触发 CI 操作，推荐使用 [Vite 插件模式](./vite-plugin.md)。
-
-## Programmatic API
-
-也可以在代码中调用：
-
-```ts
-import { runMiniCI, runMiniCIWithConfig } from "uni-mini-ci-cli";
-
-// 方式一：模拟 CLI 调用
-await runMiniCI({
-  argv: ["--upload", "--platform", "mp-weixin"],
-  cwd: process.cwd(),
-});
-
-// 方式二：直接传入配置
-await runMiniCIWithConfig({
-  args: {
-    operation: "upload",
-    platform: "mp-weixin",
-    projectPath: "dist/build/mp-weixin",
-  },
-  cwd: process.cwd(),
-  config: {
-    version: "1.0.0",
-    "mp-weixin": {
-      appid: "wx1234567890abcdef",
-      privateKeyPath: "key/private.key",
-    },
-  },
-});
-```

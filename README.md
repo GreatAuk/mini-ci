@@ -1,10 +1,18 @@
 # uni-mini-ci
 
-uniapp 小程序 CI 工具集，在 `uni build` 完成后自动执行打开开发者工具、上传开发版预览、上传体验版、更新版本号等操作。提供 **CLI** 和 **Vite 插件**（推荐）两种使用方式。
+uniapp 小程序 CI（持续集成） 工具集，提供 **CLI** 和 **Vite 插件**（推荐）两种使用方式。
+在 `uni` 的 `build` 或 `dev` 命令完成后自动执行:
+
+- 打开开发者工具并打开项目
+- 上传开发版并生成预览二维码（等同于点击微信开发者工具中的“预览”按钮）
+- 上传体验版并生成预览二维码 (等同于点击微信开发者工具中的“上传”按钮)
+- 交交互式的更新版本号 -> 创建 git commit 和 tag -> git push。
 
 ## 支持的平台
 
-| 平台                     | 依赖SDK 包名        | SDK 文档                                                                                                                                     |
+> 目前我只测试了微信小程序的，其他平台因为需要开发账号，所以还没测试😬。如果有问题欢迎反馈。
+
+| 平台                     | 依赖 CI SDK 包名    | SDK 文档                                                                                                                                     |
 | ------------------------ | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `mp-weixin（微信）`      | `miniprogram-ci`    | [查看](https://developers.weixin.qq.com/miniprogram/dev/devtools/ci.html)                                                                    |
 | `mp-alipay（阿里）`      | `minidev`           | [查看](https://opendocs.alipay.com/mini/02q29z)                                                                                              |
@@ -12,7 +20,7 @@ uniapp 小程序 CI 工具集，在 `uni build` 完成后自动执行打开开�
 | `mp-jd（京东）`          | `jd-miniprogram-ci` | [查看](https://www.npmjs.com/package/jd-miniprogram-ci)                                                                                      |
 | `mp-toutiao（字节抖音）` | `tt-ide-cli`        | [查看](https://developer.open-douyin.com/docs/resource/zh-CN/mini-app/develop/dev-tools/developer-instrument/development-assistance/ide-cli) |
 
-按需安装目标平台 SDK：
+按需安装目标平台 CI SDK：
 
 ```bash
 pnpm add -D miniprogram-ci   # 微信
@@ -24,7 +32,7 @@ pnpm add -D tt-ide-cli        # 抖音
 
 ## 支持的操作
 
-两种使用方式均支持以下三个操作：
+两种使用方式均支持以下操作：
 
 | 操作        | 说明                                                                                                      |
 | ----------- | --------------------------------------------------------------------------------------------------------- |
@@ -41,16 +49,28 @@ CLI 的 `minici.config.ts` 和 Vite 插件的 `uniMiniCI(options)` 使用同一�
 
 | 字段          | 类型                                                                                                     | 说明                                                                                                                                       |
 | ------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `version`     | `string`                                                                                                 | 发布版本号，不定义时默认读取 `package.json` 中的 `version`                                                                                 |
-| `desc`        | `string \| (ctx) => string`                                                                              | 发布描述，不定义时默认取 package.json 中的 description；函数形式时 ctx: `{ operation, platform, version, projectPath, cwd, packageJson }`. |
-| `projectPath` | `string`                                                                                                 | 构建产物目录，支持相对路径                                                                                                                 |
+| `version`     | `string`                                                                                                 | 发布版本号，不定义时默认读取 `package.json` 中的 `version`。 如果配置了 --bump, 这个配置将不再生效                                         |
+| `desc`        | `string \| (context: MiniCIDescContext) => string \| Promise<string>`                                    | 发布描述，不定义时默认取 package.json 中的 description；函数形式时 ctx: `{ operation, platform, version, projectPath, cwd, packageJson }`. |
+| `projectPath` | `string`                                                                                                 | 构建产物目录，支持相对路径。正常情况不需要定义                                                                                             |
 | `hooks`       | `MiniCIHooks`                                                                                            | 完成和错误 hook。支持 `onPreviewComplete`、`onUploadComplete`、`onError`，CLI 和 Vite 插件共享同一结构                                     |
-| `bumpOptions` | `VersionBumpOptions \| ((ctx: BumpOptionsContext) => VersionBumpOptions \| Promise<VersionBumpOptions>)` | bumpp 程序化 API 参数。mini-ci 默认 `commit` 为 `true`、`tag/push` 为 `false`，可在此显式覆盖                                                           |
+| `bumpOptions` | `VersionBumpOptions \| ((ctx: BumpOptionsContext) => VersionBumpOptions \| Promise<VersionBumpOptions>)` | bumpp 程序化 API 参数。mini-ci 默认 `commit` 为 `true`、`tag/push` 为 `false`，可在此显式覆盖                                              |
 | `mp-weixin`   | `WeappConfig`                                                                                            | 微信小程序平台配置                                                                                                                         |
 | `mp-alipay`   | `AlipayConfig`                                                                                           | 支付宝小程序平台配置                                                                                                                       |
 | `mp-baidu`    | `SwanConfig`                                                                                             | 百度小程序平台配置                                                                                                                         |
 | `mp-jd`       | `JdConfig`                                                                                               | 京东小程序平台配置                                                                                                                         |
 | `mp-toutiao`  | `TTConfig`                                                                                               | 抖音小程序平台配置                                                                                                                         |
+
+### bumpOptions
+
+`bumpOptions` 复用 [bumpp](https://github.com/antfu-collective/bumpp) 的 `VersionBumpOptions`。文档只列出常用字段：
+
+| 字段      | 说明                                                                                   |
+| --------- | -------------------------------------------------------------------------------------- |
+| `release` | 发布类型或明确版本号，例如 `patch`、`minor`、`major`、`1.2.3`                          |
+| `commit`  | 是否创建 git commit。 默认 `true`                                                      |
+| `tag`     | 是否创建 git tag。默认 `false`                                                         |
+| `push`    | 是否推送 commit 和 tag。 默认 `false`                                                  |
+| `confirm` | 是否让用户执行确认提示，默认是 true. 如果需要适用 CI/CD 等自动化场景，建议设置为 false |
 
 各平台配置字段的详细说明见对应使用文档。
 
@@ -95,7 +115,7 @@ uni -p mp-weixin -- --open
 
 `uni dev` 场景支持 `--open` 和 `--preview`，不支持 `--upload`。
 
-详细用法、构建模式差异和多平台配置 → [docs/vite-plugin.md](docs/vite-plugin.md)
+详细用法、构建模式差异 → [docs/vite-plugin.md](docs/vite-plugin.md)
 
 ## CLI 使用
 
@@ -140,26 +160,11 @@ export default defineConfig({
 ```bash
 minici --upload --platform mp-weixin
 minici --preview --platform mp-weixin
-minici --open   --platform mp-weixin --dev
+minici --open --platform mp-weixin --dev # 开发环境下，需要显示的定义 --dev, 否则会从 dist/build/mp-weixin 读取产物。
 minici --open --preview --upload --platform mp-weixin
 ```
 
-### 版本更新
-
-`--bump` 会在 CI action 前调用 bumpp 更新版本号。单独执行时不需要指定平台：
-
-```bash
-minici --bump
-```
-
-如果 `--bump` 搭配 CI action，必须包含 `--upload`：
-
-```bash
-minici --bump --upload --platform mp-weixin
-minici --bump --preview --upload --platform mp-weixin
-```
-
-详细用法、参数说明和平台配置 → [docs/cli.md](docs/cli.md)
+注意，使用 cli，如果你想开发时直接打开开发工具 `"dev:mp-weixin": "uni -p mp-weixin && minici --open --platform mp-weixin",`, `--open` 并不会生效，因为 `uni dev` 会启动一个持续监听的本地开发服务器，导致命令不会结束，无法运行 `&&` 后续的 `minici` 命令。如果需要这样使用，建议让 AI 找找 hack 方案，或者直接使用 Vite 插件版本。
 
 ## Tip
 
@@ -177,10 +182,26 @@ minici --bump --preview --upload --platform mp-weixin
     // [测试] 构建生产包（生产接口） -> 上传代码到微信控制台作为开发版本 -> 终端显示预览二维码
     "build:mp-weixin:upload": "uni build -p mp-weixin -- --upload",
 
-    // [上线] 更新版本号，创建 git commit 和 tag -> 构建生产包（生产接口） -> 上传代码到微信控制台作为开发版本 -> 终端显示预览二维码
-    "build:mp-weixin:upload": "uni build -p mp-weixin -- --upload --bump"
+    // [上线] 更新 package.json 版本号，创建 git commit 和 tag -> 构建生产包（生产接口） -> 上传代码到微信控制台作为开发版本 -> 终端显示预览二维码
+    "build:mp-weixin:release": "uni build -p mp-weixin -- --upload --bump"
   }
 }
+```
+
+```ts
+// vite.config.ts
+export default defineConfig({
+  plugins: [
+    uniMiniCI({
+      ...
+      bumpOptions: {
+        commit: true,
+        tag: true,
+        push: true,
+      },
+    }),
+  ],
+});
 ```
 
 ---
@@ -190,6 +211,15 @@ minici --bump --preview --upload --platform mp-weixin
 ```ts
 import readline from "node:readline/promises";
 import process from "node:process";
+
+export default defineConfig({
+  plugins: [
+    uni(),
+    uniMiniCI({
+      desc: getDesc,
+    }),
+  ],
+});
 
 async function getDesc() {
   // 当前执行的 npm script
@@ -209,14 +239,30 @@ async function getDesc() {
 
   return "优化体验，修复缺陷";
 }
+```
 
-export default defineConfig({
-  plugins: [
-    uni(),
-    uniMiniCI({
-      desc: getDesc,
-    }),
-  ],
+## Programmatic API
+
+也可以在代码中调用：
+
+```ts
+import { runMiniCIWithConfig } from "uni-mini-ci-core";
+
+// 直接传入配置
+await runMiniCIWithConfig({
+  args: {
+    operation: "upload",
+    platform: "mp-weixin",
+    projectPath: "dist/build/mp-weixin",
+  },
+  cwd: process.cwd(),
+  config: {
+    version: "1.0.0",
+    "mp-weixin": {
+      appid: "wx1234567890abcdef",
+      privateKeyPath: "key/private.key",
+    },
+  },
 });
 ```
 
@@ -311,3 +357,7 @@ pnpm run build
 | `uni-mini-ci-core`        | 共享运行时（内部依赖，通常不需要直接安装） |
 
 `uni-mini-ci-core` 承载平台 CI 实现、配置归一化、公共类型和 `runMiniCIWithConfig()`，由 CLI 和 Vite 插件各自作为普通依赖引入，不需要手动安装。
+
+## 感谢
+
+[taro-plugin-mini-ci](https://github.com/NervJS/taro/tree/main/packages/taro-plugin-mini-ci)
