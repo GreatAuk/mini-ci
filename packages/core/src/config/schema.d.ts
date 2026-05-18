@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { VersionBumpOptions } from "bumpp";
 import type {
+  BumpOptionsInput,
   MiniCICompleteHook,
   MiniCIConfig,
   MiniCIDescFunction,
@@ -35,7 +35,7 @@ export declare const miniciConfigSchema: z.ZodObject<
         z.core.$strict
       >
     >;
-    bumpOptions: z.ZodOptional<z.ZodCustom<VersionBumpOptions, VersionBumpOptions>>;
+    bumpOptions: z.ZodOptional<z.ZodCustom<BumpOptionsInput, BumpOptionsInput>>;
     "mp-weixin": z.ZodOptional<
       z.ZodObject<
         {

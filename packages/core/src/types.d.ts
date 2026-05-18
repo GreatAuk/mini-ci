@@ -1,4 +1,17 @@
 import type { VersionBumpOptions } from "bumpp";
+/** bumpOptions 函数形式接收的上下文 */
+export interface BumpOptionsContext {
+  /** 当前工作目录 */
+  cwd: string;
+  /** 目标平台 */
+  platform: MiniCIPlatform;
+  /** 要执行的操作列表 */
+  operations: MiniCIOperation[];
+}
+/** bumpOptions 支持对象或返回对象的函数（同步/异步） */
+export type BumpOptionsInput =
+  | VersionBumpOptions
+  | ((ctx: BumpOptionsContext) => VersionBumpOptions | Promise<VersionBumpOptions>);
 /** 支持的 CLI 操作列表 */
 export declare const supportedOperations: readonly ["open", "preview", "upload"];
 /** 支持的 uniapp 小程序平台列表 */
@@ -194,8 +207,8 @@ export interface MiniCIConfig {
   };
   /** minici hooks 配置 */
   hooks?: MiniCIHooks;
-  /** bumpp 程序化 API 参数 */
-  bumpOptions?: VersionBumpOptions;
+  /** bumpp 程序化 API 参数，支持对象或动态函数 */
+  bumpOptions?: BumpOptionsInput;
   /** 微信小程序配置 */
   "mp-weixin"?: WeappConfig;
   /** 支付宝小程序配置 */

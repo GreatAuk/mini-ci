@@ -48,6 +48,7 @@ describe("runBump", () => {
       bumpOptions: {
         release: "patch",
       },
+      context: { cwd: "/repo", platform: "mp-weixin", operations: ["upload"] },
     });
 
     expect(versionBump).toHaveBeenCalledWith({
@@ -87,6 +88,7 @@ describe("runBump", () => {
         push: true,
         cwd: "/other",
       },
+      context: { cwd: "/repo", platform: "mp-weixin", operations: ["upload"] },
     });
 
     expect(versionBump).toHaveBeenCalledWith({
@@ -94,6 +96,38 @@ describe("runBump", () => {
       tag: true,
       push: true,
       release: "minor",
+      cwd: "/repo",
+    });
+  });
+
+  test("bumpOptions 函数形式会接收上下文并解析", async () => {
+    versionBump.mockResolvedValue({
+      currentVersion: "2.0.0",
+      newVersion: "2.0.1",
+      commit: false,
+      tag: false,
+      updatedFiles: ["package.json"],
+      skippedFiles: [],
+    });
+
+    const bumpOptionsFn = vi.fn().mockReturnValue({ release: "patch" });
+
+    await runBump({
+      cwd: "/repo",
+      bumpOptions: bumpOptionsFn,
+      context: { cwd: "/repo", platform: "mp-alipay", operations: ["preview", "upload"] },
+    });
+
+    expect(bumpOptionsFn).toHaveBeenCalledWith({
+      cwd: "/repo",
+      platform: "mp-alipay",
+      operations: ["preview", "upload"],
+    });
+    expect(versionBump).toHaveBeenCalledWith({
+      commit: false,
+      tag: false,
+      push: false,
+      release: "patch",
       cwd: "/repo",
     });
   });

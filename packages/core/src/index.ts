@@ -10,6 +10,8 @@ export {
   type MiniCIActionResult,
   type MiniCIBumpOnlyResult,
   type MiniCIBumpResult,
+  type BumpOptionsContext,
+  type BumpOptionsInput,
   type MiniCICompleteHook,
   type MiniCICompleteHookData,
   type MiniCIConfig,

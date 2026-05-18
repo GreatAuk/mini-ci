@@ -137,7 +137,7 @@ describe("config schema", () => {
     });
   });
 
-  test("bumpOptions 字段为非对象时会被拒绝", () => {
+  test("bumpOptions 字段为非对象非函数时会被拒绝", () => {
     expect(() =>
       validateConfig({
         bumpOptions: "patch",
@@ -164,6 +164,16 @@ describe("config schema", () => {
         execute,
       },
     });
+  });
+
+  test("bumpOptions 支持函数形式", () => {
+    const bumpOptionsFn = (ctx: { cwd: string; platform: string; operations: string[] }) => ({
+      release: "patch" as const,
+      files: [`${ctx.cwd}/package.json`],
+    });
+
+    const result = validateConfig({ bumpOptions: bumpOptionsFn });
+    expect(result.bumpOptions).toBe(bumpOptionsFn);
   });
 });
 

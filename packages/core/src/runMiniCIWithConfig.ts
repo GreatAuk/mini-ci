@@ -300,6 +300,11 @@ export async function runMiniCIWithConfig(
       bumpResult = await runBump({
         cwd: options.cwd,
         bumpOptions: options.config.bumpOptions,
+        context: {
+          cwd: options.cwd,
+          platform: options.args.platform!,
+          operations: options.args.operations,
+        },
       });
       logger.detail("currentVersion", bumpResult.currentVersion);
       logger.detail("newVersion", bumpResult.newVersion);

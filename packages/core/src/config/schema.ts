@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { supportedPlatforms } from "../types";
 
-import type { VersionBumpOptions } from "bumpp";
 import type {
   AlipayClientType,
+  BumpOptionsInput,
   MiniCICompleteHook,
   MiniCIConfig,
   MiniCIDescFunction,
@@ -174,11 +174,13 @@ const hooksSchema = z
   .strict()
   .optional();
 
-/** bumpp 配置 schema */
+/** bumpp 配置 schema：支持对象或函数 */
 const bumpOptionsSchema = z
-  .custom<VersionBumpOptions>(
-    (value) => typeof value === "object" && value !== null && !Array.isArray(value),
-    "bumpOptions 必须是对象",
+  .custom<BumpOptionsInput>(
+    (value) =>
+      typeof value === "function" ||
+      (typeof value === "object" && value !== null && !Array.isArray(value)),
+    "bumpOptions 必须是对象或函数",
   )
   .optional();
 
