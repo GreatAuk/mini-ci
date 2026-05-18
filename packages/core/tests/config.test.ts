@@ -114,6 +114,57 @@ describe("config schema", () => {
       }),
     ).toThrow(/hooks\.onAfterBuild/);
   });
+
+  test("bumpOptions 接受普通对象配置", () => {
+    expect(
+      validateConfig({
+        bumpOptions: {
+          release: "patch",
+          commit: false,
+          tag: false,
+          push: false,
+          confirm: false,
+        },
+      }),
+    ).toEqual({
+      bumpOptions: {
+        release: "patch",
+        commit: false,
+        tag: false,
+        push: false,
+        confirm: false,
+      },
+    });
+  });
+
+  test("bumpOptions 字段为非对象时会被拒绝", () => {
+    expect(() =>
+      validateConfig({
+        bumpOptions: "patch",
+      }),
+    ).toThrow(/bumpOptions/);
+  });
+
+  test("bumpOptions 保留函数字段", () => {
+    /** bumpp progress 回调 */
+    const progress = () => {};
+    /** bumpp execute 回调 */
+    const execute = () => {};
+
+    expect(
+      validateConfig({
+        bumpOptions: {
+          progress,
+          execute,
+        },
+      }),
+    ).toEqual({
+      bumpOptions: {
+        progress,
+        execute,
+      },
+    });
+  });
 });
 
 describe("normalizeConfig", () => {

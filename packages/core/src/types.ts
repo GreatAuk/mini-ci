@@ -1,3 +1,5 @@
+import type { VersionBumpOptions } from "bumpp";
+
 /** 支持的 CLI 操作列表 */
 export const supportedOperations = ["open", "preview", "upload"] as const;
 
@@ -211,6 +213,8 @@ export interface MiniCIConfig {
   };
   /** minici hooks 配置 */
   hooks?: MiniCIHooks;
+  /** bumpp 程序化 API 参数 */
+  bumpOptions?: VersionBumpOptions;
   /** 微信小程序配置 */
   "mp-weixin"?: WeappConfig;
   /** 支付宝小程序配置 */
@@ -313,8 +317,36 @@ export interface MiniCISingleResult {
   qrCodeContent?: string;
 }
 
-/** minici 执行聚合结果 */
-export interface MiniCIResult {
+/** bumpp 执行结果 */
+export interface MiniCIBumpResult {
+  /** 是否执行成功 */
+  success: boolean;
+  /** 原版本号 */
+  currentVersion: string;
+  /** 新版本号 */
+  newVersion: string;
+  /** git commit 信息；未提交时为 false */
+  commit: string | false;
+  /** git tag 信息；未打 tag 时为 false */
+  tag: string | false;
+  /** 实际更新的文件 */
+  updatedFiles: string[];
+  /** 未包含旧版本号而跳过的文件 */
+  skippedFiles: string[];
+}
+
+/** 只执行 bump 时的返回值 */
+export interface MiniCIBumpOnlyResult {
+  /** 是否执行成功 */
+  success: true;
+  /** bump-only 没有 CI action */
+  operations: [];
+  /** bump 执行结果 */
+  bump: MiniCIBumpResult;
+}
+
+/** 执行 CI action 时的返回值 */
+export interface MiniCIActionResult {
   /** 是否全部执行成功 */
   success: boolean;
   /** 当前操作列表 */
@@ -327,9 +359,14 @@ export interface MiniCIResult {
   desc: string;
   /** 当前项目目录 */
   projectPath: string;
+  /** bump 执行结果 */
+  bump?: MiniCIBumpResult;
   /** 每个 action 的执行结果 */
   results: MiniCISingleResult[];
 }
+
+/** minici 执行聚合结果 */
+export type MiniCIResult = MiniCIBumpOnlyResult | MiniCIActionResult;
 
 /** 共享 minici 执行入口选项 */
 export interface RunMiniCIWithConfigOptions {
