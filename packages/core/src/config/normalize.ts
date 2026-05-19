@@ -28,6 +28,8 @@ export interface NormalizeConfigInput<P extends MiniCIPlatform = MiniCIPlatform>
   config: MiniCIConfig;
   /** 当前项目 package.json 内容 */
   packageJson: Record<string, unknown>;
+  /** 是否允许缺少当前平台配置；pure open 可开启 */
+  allowMissingPlatformConfig?: boolean;
 }
 
 /**
@@ -150,8 +152,19 @@ export async function normalizeConfig<P extends MiniCIPlatform>(
 ): Promise<NormalizedMiniCIConfig<P>> {
   /** 校验后的完整配置 */
   const config = validateConfig(input.config);
+  /** 当前平台原始配置 */
+  const rawPlatformConfig = config[input.args.platform];
+  /** open 操作是否允许缺少当前平台配置 */
+  const isOpenAllowedMissingPlatformConfig =
+    input.args.operation === "open" && input.allowMissingPlatformConfig === true;
   /** 当前平台配置 */
-  const platformConfig = validatePlatformConfig(input.args.platform, config);
+  let platformConfig: NormalizedMiniCIConfig<P>["platformConfig"];
+
+  if (!rawPlatformConfig && isOpenAllowedMissingPlatformConfig) {
+    platformConfig = undefined;
+  } else {
+    platformConfig = validatePlatformConfig(input.args.platform, config);
+  }
   /** package.json 中的 version */
   const packageVersion = readPackageJsonString(input.packageJson, "version");
   /** 归一化后的版本号 */
@@ -186,7 +199,7 @@ export async function normalizeConfig<P extends MiniCIPlatform>(
     desc,
     packageJson: input.packageJson,
     ...(qrcodePath && { qrcodePath }),
-    platformConfig,
+    ...(platformConfig && { platformConfig }),
   } as NormalizedMiniCIConfig<P>;
 
   return normalizedConfig;

@@ -348,6 +348,8 @@ export async function runMiniCIWithConfig(
         version: bumpResult.newVersion,
       }
     : options.args;
+  /** 是否仅执行 open 操作 */
+  const pureOpen = runtimeArgs.operations.length === 1 && runtimeArgs.operations[0] === "open";
 
   for (const operation of runtimeArgs.operations) {
     /** 当前操作的归一化配置 */
@@ -363,6 +365,7 @@ export async function runMiniCIWithConfig(
         cwd: options.cwd,
         config: options.config,
         packageJson,
+        allowMissingPlatformConfig: pureOpen,
       });
 
       if (!didPrintHeader) {
@@ -420,27 +423,29 @@ export async function runMiniCIWithConfig(
     /** 当前平台 CI 实例 */
     const ci = createCI(normalized, logger);
 
-    try {
-      await ci.init();
-    } catch (error) {
-      /** 初始化错误 */
-      const initError = toError(error);
-      logFailure({
-        logger,
-        error: initError,
-        operation,
-        platform: runtimeArgs.platform,
-      });
-      await triggerErrorHook(
-        options,
-        createErrorHookData({
+    if (!pureOpen) {
+      try {
+        await ci.init();
+      } catch (error) {
+        /** 初始化错误 */
+        const initError = toError(error);
+        logFailure({
+          logger,
           error: initError,
           operation,
           platform: runtimeArgs.platform,
-          normalized,
-        }),
-      );
-      throw initError;
+        });
+        await triggerErrorHook(
+          options,
+          createErrorHookData({
+            error: initError,
+            operation,
+            platform: runtimeArgs.platform,
+            normalized,
+          }),
+        );
+        throw initError;
+      }
     }
 
     /** 当前操作执行结果 */

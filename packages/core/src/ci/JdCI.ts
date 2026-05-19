@@ -26,7 +26,7 @@ export class JdCI extends BaseCI<"mp-jd"> {
   }
 
   async preview() {
-    const { privateKey, ignores } = this.config.platformConfig;
+    const { privateKey, ignores } = this.requirePlatformConfig();
     const previewQrcodePath =
       this.config.qrcodePath?.preview ?? path.join(this.config.projectPath, "preview.jpg");
 
@@ -59,7 +59,7 @@ export class JdCI extends BaseCI<"mp-jd"> {
   }
 
   async upload() {
-    const { privateKey, robot, ignores } = this.config.platformConfig;
+    const { privateKey, robot, ignores } = this.requirePlatformConfig();
     const uploadQrcodePath =
       this.config.qrcodePath?.upload ?? path.join(this.config.projectPath, "upload.jpg");
 

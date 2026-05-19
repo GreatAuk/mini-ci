@@ -27,7 +27,7 @@ export class SwanCI extends BaseCI<"mp-baidu"> {
   async open() {
     const isMac = process.platform === "darwin";
     const devToolsInstallPath =
-      this.config.platformConfig.devToolsInstallPath ||
+      this.config.platformConfig?.devToolsInstallPath ||
       (isMac ? "/Applications/百度开发者工具.app" : "C:\\Program Files\\swan-ide-gui");
     const cliPath = path.join(devToolsInstallPath, isMac ? "/Contents/MacOS/cli" : "/cli.bat");
 
@@ -44,7 +44,7 @@ export class SwanCI extends BaseCI<"mp-baidu"> {
   async preview() {
     const previewQrcodePath =
       this.config.qrcodePath?.preview ?? path.join(this.config.projectPath, "preview.png");
-    const swanConfig = this.config.platformConfig;
+    const swanConfig = this.requirePlatformConfig();
     this.logger.start("预览百度小程序");
 
     return new Promise<ReturnType<typeof this.createResult>>((resolve, reject) => {
@@ -82,7 +82,7 @@ export class SwanCI extends BaseCI<"mp-baidu"> {
   }
 
   async upload() {
-    const swanConfig = this.config.platformConfig;
+    const swanConfig = this.requirePlatformConfig();
     this.logger.start("上传体验版代码到百度后台");
     this.logger.detail("version", this.config.version);
     this.logger.detail("desc", this.config.desc);

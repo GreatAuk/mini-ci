@@ -544,4 +544,83 @@ describe("normalizeConfig", () => {
     expect(normalized.qrcodePath?.preview).toBe(path.join(cwd, "output/preview.png"));
     expect(normalized.qrcodePath?.upload).toBeUndefined();
   });
+
+  test("纯 open 允许缺少当前平台配置", async () => {
+    /** 当前工作目录 */
+    const cwd = "/workspace/project";
+
+    /** 归一化后的配置 */
+    const normalized = await normalizeConfig({
+      cwd,
+      args: {
+        operation: "open",
+        platform: "mp-weixin",
+        projectPath: "dist/dev/mp-weixin",
+      },
+      config: {},
+      packageJson: {
+        version: "1.0.0",
+        description: "包描述",
+      },
+      allowMissingPlatformConfig: true,
+    });
+
+    expect(normalized).toMatchObject({
+      operation: "open",
+      platform: "mp-weixin",
+      version: "1.0.0",
+      desc: "包描述",
+      projectPath: path.join(cwd, "dist/dev/mp-weixin"),
+    });
+    expect(normalized.platformConfig).toBeUndefined();
+  });
+
+  test("preview 默认不允许缺少当前平台配置", async () => {
+    await expect(
+      normalizeConfig({
+        cwd: "/workspace/project",
+        args: {
+          operation: "preview",
+          platform: "mp-weixin",
+        },
+        config: {},
+        packageJson: {},
+        allowMissingPlatformConfig: false,
+      }),
+    ).rejects.toThrow("mp-weixin 平台配置不能为空");
+  });
+
+  test("preview 即使允许缺少平台配置也仍失败", async () => {
+    await expect(
+      normalizeConfig({
+        cwd: "/workspace/project",
+        args: {
+          operation: "preview",
+          platform: "mp-weixin",
+        },
+        config: {},
+        packageJson: {},
+        allowMissingPlatformConfig: true,
+      }),
+    ).rejects.toThrow("mp-weixin 平台配置不能为空");
+  });
+
+  test("pure open 显式提供不完整平台配置时仍按 schema 失败", async () => {
+    await expect(
+      normalizeConfig({
+        cwd: "/workspace/project",
+        args: {
+          operation: "open",
+          platform: "mp-weixin",
+        },
+        config: {
+          "mp-weixin": {
+            appid: "wx-appid",
+          } as never,
+        },
+        packageJson: {},
+        allowMissingPlatformConfig: true,
+      }),
+    ).rejects.toThrow(/mp-weixin\.privateKeyPath/);
+  });
 });

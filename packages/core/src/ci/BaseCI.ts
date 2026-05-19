@@ -1,7 +1,12 @@
 import { createLogger } from "../runtime/logger";
 
 import type { Logger } from "../runtime/logger";
-import type { MiniCIPlatform, MiniCISingleResult, NormalizedMiniCIConfig } from "../types";
+import type {
+  MiniCIPlatform,
+  MiniCISingleResult,
+  NormalizedMiniCIConfig,
+  PlatformConfigMap,
+} from "../types";
 
 /** 平台 CI 基类 */
 export abstract class BaseCI<P extends MiniCIPlatform = MiniCIPlatform> {
@@ -13,6 +18,19 @@ export abstract class BaseCI<P extends MiniCIPlatform = MiniCIPlatform> {
   constructor(config: NormalizedMiniCIConfig<P>, logger: Logger = createLogger()) {
     this.config = config;
     this.logger = logger;
+  }
+
+  /**
+   * 读取需要 preview/upload 的平台私密配置。
+   *
+   * @returns 当前平台配置
+   */
+  protected requirePlatformConfig(): PlatformConfigMap[P] {
+    if (!this.config.platformConfig) {
+      throw new Error(`配置校验失败：${this.config.platform} 平台配置不能为空`);
+    }
+
+    return this.config.platformConfig as PlatformConfigMap[P];
   }
 
   /**

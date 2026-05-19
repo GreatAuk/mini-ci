@@ -4,10 +4,12 @@ import path from "node:path";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { runMiniCIWithConfig } from "../src/runMiniCIWithConfig";
 
-import type { MiniCIConfig, MiniCIOperation } from "../src/types";
+import type { MiniCIConfig, MiniCIOperation, MiniCIPlatform } from "../src/types";
 
 /** mock createCI 返回的执行记录 */
 const calls: MiniCIOperation[] = [];
+/** mock init 执行记录 */
+const initCalls: MiniCIOperation[] = [];
 /** mock 失败的操作或初始化阶段 */
 let failingMethod: MiniCIOperation | "init" | undefined;
 /** 临时目录列表 */
@@ -16,6 +18,8 @@ const tempDirs: string[] = [];
 vi.mock("../src/ci/registry", () => ({
   createCI: (config: any, logger: any) => ({
     init: vi.fn().mockImplementation(() => {
+      initCalls.push(config.operation);
+
       if (failingMethod === "init") {
         throw new Error("init failed");
       }
@@ -84,10 +88,22 @@ vi.mock("../src/ci/registry", () => ({
  * @returns 临时项目目录和构建产物目录
  */
 async function createProject(): Promise<{ cwd: string; projectPath: string }> {
+  return createProjectForPlatform("mp-weixin");
+}
+
+/**
+ * 为指定平台创建临时测试项目。
+ *
+ * @param platform 当前平台
+ * @returns 临时项目目录和构建产物目录
+ */
+async function createProjectForPlatform(
+  platform: MiniCIPlatform,
+): Promise<{ cwd: string; projectPath: string }> {
   /** 临时项目目录 */
   const cwd = await mkdtemp(path.join(os.tmpdir(), "minici-hooks-"));
   /** 小程序构建产物目录 */
-  const projectPath = path.join(cwd, "dist/build/mp-weixin");
+  const projectPath = path.join(cwd, "dist/build", platform);
 
   tempDirs.push(cwd);
   await mkdir(projectPath, { recursive: true });
@@ -126,8 +142,36 @@ async function runWithHooks(operations: MiniCIOperation[], hooks: MiniCIConfig["
   });
 }
 
+/**
+ * 使用指定平台和配置执行共享 runner。
+ *
+ * @param operations 当前操作列表
+ * @param platform 当前平台
+ * @param config 用户配置
+ * @returns minici 执行结果
+ */
+async function runWithConfig(
+  operations: MiniCIOperation[],
+  platform: MiniCIPlatform,
+  config: MiniCIConfig,
+) {
+  /** 临时项目 */
+  const project = await createProjectForPlatform(platform);
+
+  return runMiniCIWithConfig({
+    args: {
+      operations,
+      platform,
+      projectPath: project.projectPath,
+    },
+    cwd: project.cwd,
+    config,
+  });
+}
+
 afterEach(async () => {
   calls.length = 0;
+  initCalls.length = 0;
   failingMethod = undefined;
   await Promise.all(tempDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
 });
@@ -403,6 +447,41 @@ describe("runMiniCIWithConfig hooks", () => {
     expect(onUploadComplete).not.toHaveBeenCalled();
     expect(calls).toEqual([]);
   });
+
+  test("纯 open 缺少平台配置时执行 open 并跳过完整 init", async () => {
+    await runWithConfig(["open"], "mp-weixin", {
+      version: "1.0.0",
+      desc: "测试描述",
+    });
+
+    expect(calls).toEqual(["open"]);
+    expect(initCalls).toEqual([]);
+  });
+
+  test("open 与 preview 组合时缺少平台配置会直接失败且不执行 open", async () => {
+    await expect(
+      runWithConfig(["open", "preview"], "mp-weixin", {
+        version: "1.0.0",
+        desc: "测试描述",
+      }),
+    ).rejects.toThrow("mp-weixin 平台配置不能为空");
+
+    expect(calls).toEqual([]);
+    expect(initCalls).toEqual([]);
+  });
+
+  test.each(["mp-weixin", "mp-alipay", "mp-baidu", "mp-jd", "mp-toutiao"] as const)(
+    "纯 open 缺少 %s 平台配置时不阻塞 runner",
+    async (platform) => {
+      await runWithConfig(["open"], platform, {
+        version: "1.0.0",
+        desc: "测试描述",
+      });
+
+      expect(calls).toEqual(["open"]);
+      expect(initCalls).toEqual([]);
+    },
+  );
 });
 
 /**

@@ -20,8 +20,22 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
   /** 微信开发者工具安装路径 */
   private devToolsInstallPath = "";
 
+  /**
+   * 获取微信开发者工具安装路径。
+   *
+   * @returns 开发者工具安装路径
+   */
+  private getDevToolsInstallPath(): string {
+    return (
+      this.config.platformConfig?.devToolsInstallPath ||
+      (process.platform === "darwin"
+        ? "/Applications/wechatwebdevtools.app"
+        : "C:\\Program Files (x86)\\Tencent\\微信web开发者工具")
+    );
+  }
+
   async init(): Promise<void> {
-    const weappConfig = this.config.platformConfig;
+    const weappConfig = this.requirePlatformConfig();
 
     try {
       this.ci = getNpmPkgSync("miniprogram-ci", this.config.cwd);
@@ -29,11 +43,7 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
       throw new Error("当前平台 mp-weixin 需要安装依赖：miniprogram-ci");
     }
 
-    this.devToolsInstallPath =
-      weappConfig.devToolsInstallPath ||
-      (process.platform === "darwin"
-        ? "/Applications/wechatwebdevtools.app"
-        : "C:\\Program Files (x86)\\Tencent\\微信web开发者工具");
+    this.devToolsInstallPath = this.getDevToolsInstallPath();
 
     const privateKeyPath = path.isAbsolute(weappConfig.privateKeyPath)
       ? weappConfig.privateKeyPath
@@ -53,19 +63,20 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
   }
 
   async open() {
-    if (!existsSync(this.devToolsInstallPath)) {
-      throw new Error(`微信开发者工具安装路径不存在：${this.devToolsInstallPath}`);
+    /** 开发者工具安装路径 */
+    const devToolsInstallPath = this.devToolsInstallPath || this.getDevToolsInstallPath();
+
+    if (!existsSync(devToolsInstallPath)) {
+      throw new Error(`微信开发者工具安装路径不存在：${devToolsInstallPath}`);
     }
 
     const cliPath = path.join(
-      this.devToolsInstallPath,
+      devToolsInstallPath,
       os.platform() === "win32" ? "/cli.bat" : "/Contents/MacOS/cli",
     );
 
     const isWindows = os.platform() === "win32";
-    const installPath = isWindows
-      ? this.devToolsInstallPath
-      : `${this.devToolsInstallPath}/Contents/MacOS`;
+    const installPath = isWindows ? devToolsInstallPath : `${devToolsInstallPath}/Contents/MacOS`;
     const md5 = crypto.createHash("md5").update(installPath).digest("hex");
     const ideStatusFile = path.join(
       os.homedir(),
@@ -95,7 +106,7 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
       this.logger.start("上传开发版代码到微信后台并预览");
       const previewQrcodePath =
         this.config.qrcodePath?.preview ?? path.join(this.config.projectPath, "preview.jpg");
-      const weappConfig = this.config.platformConfig;
+      const weappConfig = this.requirePlatformConfig();
 
       const uploadResult = await this.ci.preview({
         project: this.instance,
@@ -149,7 +160,7 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
       this.logger.start("上传体验版代码到微信后台");
       this.logger.detail("version", this.config.version);
       this.logger.detail("desc", this.config.desc);
-      const weappConfig = this.config.platformConfig;
+      const weappConfig = this.requirePlatformConfig();
 
       const uploadResult = await this.ci.upload({
         project: this.instance,

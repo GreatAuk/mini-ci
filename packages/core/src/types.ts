@@ -307,8 +307,8 @@ export type NormalizedMiniCIConfig<P extends MiniCIPlatform = MiniCIPlatform> =
     ? NormalizedMiniCIConfigBase & {
         /** 当前平台 */
         platform: P;
-        /** 当前平台配置 */
-        platformConfig: PlatformConfigMap[P];
+        /** 当前平台配置；pure open 时允许不存在 */
+        platformConfig?: PlatformConfigMap[P];
       }
     : never;
 

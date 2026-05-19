@@ -14,14 +14,28 @@ export class AlipayCI extends BaseCI<"mp-alipay"> {
   /** minidev 模块实例 */
   private minidev: any;
 
-  async init(): Promise<void> {
-    const alipayConfig = this.config.platformConfig;
-
-    try {
-      this.minidev = getNpmPkgSync("minidev", this.config.cwd);
-    } catch {
-      throw new Error("当前平台 mp-alipay 需要安装依赖：minidev");
+  /**
+   * 加载 minidev 模块。
+   *
+   * @returns minidev 模块实例
+   */
+  private loadMinidev(): any {
+    if (!this.minidev) {
+      try {
+        this.minidev = getNpmPkgSync("minidev", this.config.cwd);
+      } catch (error) {
+        throw new Error(
+          `mp-alipay 加载 minidev 失败：${error instanceof Error ? error.message : error}`,
+        );
+      }
     }
+
+    return this.minidev;
+  }
+
+  async init(): Promise<void> {
+    const alipayConfig = this.requirePlatformConfig();
+    const minidev = this.loadMinidev();
 
     let privateKey = alipayConfig.privateKey;
     if (!privateKey) {
@@ -38,7 +52,7 @@ export class AlipayCI extends BaseCI<"mp-alipay"> {
       privateKey = readFileSync(privateKeyPath, "utf-8");
     }
 
-    this.minidev.useDefaults({
+    minidev.useDefaults({
       config: {
         defaults: {
           "alipay.authentication.privateKey": privateKey,
@@ -49,13 +63,14 @@ export class AlipayCI extends BaseCI<"mp-alipay"> {
   }
 
   async open() {
+    const minidev = this.minidev || this.loadMinidev();
     const alipayConfig = this.config.platformConfig;
     try {
       this.logger.start("小程序开发者工具", this.config.projectPath);
-      await this.minidev.minidev.startIde(
+      await minidev.minidev.startIde(
         Object.assign(
           { project: this.config.projectPath },
-          alipayConfig.devToolsInstallPath ? { appPath: alipayConfig.devToolsInstallPath } : {},
+          alipayConfig?.devToolsInstallPath ? { appPath: alipayConfig.devToolsInstallPath } : {},
         ),
       );
       return this.createResult(true);
@@ -65,7 +80,7 @@ export class AlipayCI extends BaseCI<"mp-alipay"> {
   }
 
   async preview() {
-    const { appid: appId, clientType = "alipay" } = this.config.platformConfig;
+    const { appid: appId, clientType = "alipay" } = this.requirePlatformConfig();
     try {
       const previewResult = await this.minidev.minidev.preview({
         project: this.config.projectPath,
@@ -95,7 +110,7 @@ export class AlipayCI extends BaseCI<"mp-alipay"> {
   }
 
   async upload() {
-    const { clientType = "alipay", appid: appId, deleteVersion } = this.config.platformConfig;
+    const { clientType = "alipay", appid: appId, deleteVersion } = this.requirePlatformConfig();
     this.logger.start("上传代码到阿里小程序后台", clientType);
 
     try {

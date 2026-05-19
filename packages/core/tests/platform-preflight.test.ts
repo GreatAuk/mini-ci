@@ -113,6 +113,6 @@ describe("TTCI", () => {
       },
     });
 
-    await expect(ci.init()).rejects.toThrow("tt-ide-cli");
+    await expect(ci.init()).rejects.toThrow("需要安装依赖：tt-ide-cli");
   });
 });

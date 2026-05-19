@@ -8,19 +8,32 @@ export class TTCI extends BaseCI<"mp-toutiao"> {
   /** tt-ide-cli 模块 */
   private tt: any;
 
-  async init(): Promise<void> {
-    try {
-      this.tt = getNpmPkgSync("tt-ide-cli", this.config.cwd);
-    } catch {
-      throw new Error("当前平台 mp-toutiao 需要安装依赖：tt-ide-cli");
+  /**
+   * 加载 tt-ide-cli 模块。
+   *
+   * @returns tt-ide-cli 模块实例
+   */
+  private loadTT(): any {
+    if (!this.tt) {
+      try {
+        this.tt = getNpmPkgSync("tt-ide-cli", this.config.cwd);
+      } catch {
+        throw new Error("当前平台 mp-toutiao 需要安装依赖：tt-ide-cli");
+      }
     }
+
+    return this.tt;
+  }
+
+  async init(): Promise<void> {
+    this.loadTT();
   }
 
   /**
    * 登录字节小程序。
    */
   private async beforeCheck(): Promise<void> {
-    const ttConfig = this.config.platformConfig;
+    const ttConfig = this.requirePlatformConfig();
     await this.tt.loginByEmail({
       email: ttConfig.email,
       password: ttConfig.password,
@@ -30,8 +43,9 @@ export class TTCI extends BaseCI<"mp-toutiao"> {
 
   async open() {
     try {
+      const tt = this.tt || this.loadTT();
       this.logger.start("启动抖音小程序开发者工具", this.config.projectPath);
-      await this.tt.open({
+      await tt.open({
         project: {
           path: this.config.projectPath,
         },
@@ -51,7 +65,7 @@ export class TTCI extends BaseCI<"mp-toutiao"> {
       this.logger.start("预览抖音小程序");
       const previewQrcodePath =
         this.config.qrcodePath?.preview ?? path.join(this.config.projectPath, "preview.png");
-      const ttConfig = this.config.platformConfig;
+      const ttConfig = this.requirePlatformConfig();
 
       const previewResult = await this.tt.preview({
         project: {
