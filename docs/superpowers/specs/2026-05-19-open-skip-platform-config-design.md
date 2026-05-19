@@ -75,8 +75,7 @@ CLI / Vite 插件 / 程序化 API
 在 `runMiniCIWithConfig()` 中基于最终运行参数判断：
 
 ```ts
-const pureOpen =
-  runtimeArgs.operations.length === 1 && runtimeArgs.operations[0] === "open";
+const pureOpen = runtimeArgs.operations.length === 1 && runtimeArgs.operations[0] === "open";
 ```
 
 这个判断必须使用 bump 后的 `runtimeArgs`，确保 bump-only 和 bump + upload 不受影响。
@@ -213,21 +212,21 @@ normalizeConfig 要求 mp-weixin 完整配置
 
 ## 改动文件清单
 
-| 文件                                      | 改动类型                                      |
-| ----------------------------------------- | --------------------------------------------- |
-| `packages/core/src/config/normalize.ts`   | 支持 pureOpen 时缺少平台配置                  |
-| `packages/core/src/runMiniCIWithConfig.ts` | 判断 pureOpen，并控制平台配置校验和初始化路径 |
-| `packages/core/src/types.ts`              | 调整 normalized config 类型以表达可选平台配置 |
-| `packages/core/src/ci/WeappCI.ts`         | open 使用可选平台配置和默认开发者工具路径     |
-| `packages/core/src/ci/AlipayCI.ts`        | open 只加载 SDK，不执行私钥鉴权初始化         |
-| `packages/core/src/ci/SwanCI.ts`          | open 使用可选平台配置和默认开发者工具路径     |
-| `packages/core/src/ci/TTCI.ts`            | open 只加载 SDK，不执行登录                   |
-| `packages/core/src/ci/JdCI.ts`            | open 不依赖 SDK 和平台私钥配置                |
-| `packages/core/tests/config.test.ts`      | 新增 normalize 测试                           |
-| `packages/core/tests/hooks.test.ts`       | 新增共享 runner 行为测试                      |
-| `packages/cli/tests/runner.test.ts`       | 新增 CLI 外观测试                             |
-| `packages/vite-plugin/tests/plugin.test.ts` | 新增插件入口测试                            |
-| `README.md` / `docs/*.md`                 | 说明纯 open 不需要平台私密配置                |
+| 文件                                        | 改动类型                                      |
+| ------------------------------------------- | --------------------------------------------- |
+| `packages/core/src/config/normalize.ts`     | 支持 pureOpen 时缺少平台配置                  |
+| `packages/core/src/runMiniCIWithConfig.ts`  | 判断 pureOpen，并控制平台配置校验和初始化路径 |
+| `packages/core/src/types.ts`                | 调整 normalized config 类型以表达可选平台配置 |
+| `packages/core/src/ci/WeappCI.ts`           | open 使用可选平台配置和默认开发者工具路径     |
+| `packages/core/src/ci/AlipayCI.ts`          | open 只加载 SDK，不执行私钥鉴权初始化         |
+| `packages/core/src/ci/SwanCI.ts`            | open 使用可选平台配置和默认开发者工具路径     |
+| `packages/core/src/ci/TTCI.ts`              | open 只加载 SDK，不执行登录                   |
+| `packages/core/src/ci/JdCI.ts`              | open 不依赖 SDK 和平台私钥配置                |
+| `packages/core/tests/config.test.ts`        | 新增 normalize 测试                           |
+| `packages/core/tests/hooks.test.ts`         | 新增共享 runner 行为测试                      |
+| `packages/cli/tests/runner.test.ts`         | 新增 CLI 外观测试                             |
+| `packages/vite-plugin/tests/plugin.test.ts` | 新增插件入口测试                              |
+| `README.md` / `docs/*.md`                   | 说明纯 open 不需要平台私密配置                |
 
 ---
 
