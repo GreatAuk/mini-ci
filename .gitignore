@@ -7,3 +7,4 @@ dist
 private.*.key
 playground/config.ts
 .superpowers/
+.worktrees
