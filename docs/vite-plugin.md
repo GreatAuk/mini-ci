@@ -77,6 +77,8 @@ uni build -p mp-weixin -- --open
 uni dev -p mp-weixin -- --open
 ```
 
+纯 `--open` 可以配合空的 `uniMiniCI({})` 使用，只要 uni 提供了 `UNI_PLATFORM` 和 `UNI_OUTPUT_DIR`。如果同一次命令还包含 `--preview` 或 `--upload`，仍需要在 `uniMiniCI(options)` 中配置对应平台凭证。
+
 `--bump` 可以单独使用：
 
 ```bash

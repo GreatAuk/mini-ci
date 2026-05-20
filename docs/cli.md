@@ -75,6 +75,8 @@ minici --<operation> --platform <platform> [options]
 | `--upload`  | 上传体验版                                                              |
 | `--bump`    | 使用 bumpp 更新版本号。可单独执行；搭配 CI action 时必须包含 `--upload` |
 
+纯 `--open` 不要求在 `minici.config` 中配置对应平台的私密 CI 配置；它只负责按 `platform` 和 `projectPath` 打开开发者工具。`--open --preview`、`--open --upload` 仍按发布类操作处理，必须提供完整平台配置。
+
 ### 选项
 
 | 选项                    | 说明                                                                    |

@@ -43,6 +43,8 @@ pnpm add -D tt-ide-cli        # 抖音
 
 `--open`、`--preview`、`--upload` 可以组合使用；组合时执行顺序固定为 `open -> preview -> upload`，不受命令行书写顺序影响。
 
+纯 `--open` 只需要 `platform` 和 `projectPath`，不要求配置对应平台的 appid、私钥、token、账号密码等 CI 发布凭证；一旦与 `--preview` 或 `--upload` 组合，仍必须提供完整平台配置，且缺少配置时不会先执行 `open`。
+
 ## 共享配置字段
 
 CLI 的 `minici.config.ts` 和 Vite 插件的 `uniMiniCI(options)` 使用同一套配置结构：
