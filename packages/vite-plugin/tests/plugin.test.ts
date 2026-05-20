@@ -221,6 +221,31 @@ describe("uniMiniCI", () => {
     expect(calls).toEqual([{ method: "open", projectPath: outputDir, platform: "mp-weixin" }]);
   });
 
+  test("serve 模式纯 open 缺少平台配置时仍执行 open", async () => {
+    const { cwd, outputDir } = await createProject("serve");
+    process.argv = ["node", "uni", "dev", "-p", "mp-weixin", "--", "--open"];
+    process.env.UNI_PLATFORM = "mp-weixin";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+
+    const plugin = uniMiniCI({});
+
+    await runServePlugin(plugin, cwd);
+
+    expect(calls).toEqual([{ method: "open", projectPath: outputDir, platform: "mp-weixin" }]);
+  });
+
+  test("serve 模式 open 与 preview 组合缺少平台配置时仍失败且不执行 open", async () => {
+    const { cwd, outputDir } = await createProject("serve");
+    process.argv = ["node", "uni", "dev", "-p", "mp-weixin", "--", "--open", "--preview"];
+    process.env.UNI_PLATFORM = "mp-weixin";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+
+    const plugin = uniMiniCI({});
+
+    await expect(runServePlugin(plugin, cwd)).rejects.toThrow("mp-weixin 平台配置不能为空");
+    expect(calls).toEqual([]);
+  });
+
   test("serve 模式拒绝 upload", async () => {
     const { cwd, outputDir } = await createProject("serve");
     process.argv = ["node", "uni", "dev", "-p", "mp-weixin", "--", "--upload"];

@@ -149,6 +149,41 @@ describe("runMiniCI", () => {
     expect(calls).toEqual([{ method: "open" }]);
   });
 
+  test("纯 open 缺少平台配置时仍执行 open", async () => {
+    const cwd = await createTempDir();
+    const projectPath = path.join(cwd, "dist/dev/mp-weixin");
+    await mkdir(projectPath, { recursive: true });
+    await writeFile(path.join(cwd, "package.json"), JSON.stringify({ version: "1.0.0" }));
+    await writeFile(path.join(cwd, "minici.config.mjs"), "export default {};");
+
+    const { runMiniCI } = await import("../src/index");
+    await runMiniCI({
+      argv: ["--open", "--platform", "mp-weixin", "--projectPath", projectPath],
+      cwd,
+    });
+
+    expect(calls).toEqual([{ method: "open" }]);
+  });
+
+  test("open 与 preview 组合缺少平台配置时仍失败且不执行 open", async () => {
+    const cwd = await createTempDir();
+    const projectPath = path.join(cwd, "dist/dev/mp-weixin");
+    await mkdir(projectPath, { recursive: true });
+    await writeFile(path.join(cwd, "package.json"), JSON.stringify({ version: "1.0.0" }));
+    await writeFile(path.join(cwd, "minici.config.mjs"), "export default {};");
+
+    const { runMiniCI } = await import("../src/index");
+
+    await expect(
+      runMiniCI({
+        argv: ["--open", "--preview", "--platform", "mp-weixin", "--projectPath", projectPath],
+        cwd,
+      }),
+    ).rejects.toThrow("mp-weixin 平台配置不能为空");
+
+    expect(calls).toEqual([]);
+  });
+
   test("命令行 version 和 desc 正确传递", async () => {
     const cwd = await createProjectDir();
 
