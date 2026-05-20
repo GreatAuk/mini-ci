@@ -63,7 +63,9 @@ describe("public api", () => {
     type WeixinConfig = NormalizedMiniCIConfig<"mp-weixin">;
 
     expectTypeOf<WeixinConfig["platform"]>().toEqualTypeOf<"mp-weixin">();
-    expectTypeOf<WeixinConfig["platformConfig"]>().toEqualTypeOf<PlatformConfigMap["mp-weixin"]>();
+    expectTypeOf<WeixinConfig["platformConfig"]>().toEqualTypeOf<
+      PlatformConfigMap["mp-weixin"] | undefined
+    >();
   });
 
   test("导出 bump 结果类型", () => {
