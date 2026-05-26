@@ -357,6 +357,27 @@ describe("uniMiniCI", () => {
     expect(calls.map((c) => c.method)).toEqual(["open", "preview"]);
   });
 
+  test("watch build 模式（uni dev）重复构建时 pure open 只执行一次", async () => {
+    const { cwd, outputDir } = await createProject("build");
+    process.argv = ["node", "uni", "dev", "-p", "mp-weixin", "--", "--open"];
+    process.env.UNI_PLATFORM = "mp-weixin";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+    process.env.NODE_ENV = "development";
+
+    const plugin = uniMiniCI({});
+
+    if (typeof plugin.configResolved === "function") {
+      await (plugin.configResolved as Function).call(null, createWatchBuildConfig(cwd));
+    }
+
+    if (typeof plugin.closeBundle === "function") {
+      await (plugin.closeBundle as Function).call(null);
+      await (plugin.closeBundle as Function).call(null);
+    }
+
+    expect(calls).toEqual([{ method: "open", projectPath: outputDir, platform: "mp-weixin" }]);
+  });
+
   test("未传操作时跳过", async () => {
     const { cwd, outputDir } = await createProject("build");
     process.argv = ["node", "uni", "build", "-p", "mp-weixin"];

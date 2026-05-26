@@ -77,6 +77,8 @@ function readProjectPath(options: UniMiniCIPluginOptions): string {
 export function uniMiniCI(options: UniMiniCIPluginOptions): Plugin {
   /** 已解析 Vite 配置 */
   let resolvedConfig: ResolvedConfig | undefined;
+  /** dev watch 模式是否已经执行过 open，避免保存代码后反复打开开发者工具 */
+  let didRunDevOpen = false;
 
   /**
    * 执行插件触发的 minici 操作。
@@ -106,7 +108,17 @@ export function uniMiniCI(options: UniMiniCIPluginOptions): Plugin {
       throw new Error("upload 只支持 build 模式");
     }
 
-    if (pluginArgs.operations.length === 0) {
+    /** 本次需要执行的操作列表 */
+    const operations =
+      isDev && didRunDevOpen
+        ? pluginArgs.operations.filter((operation) => operation !== "open")
+        : pluginArgs.operations;
+
+    if (operations.length === 0 && !pluginArgs.bump) {
+      return;
+    }
+
+    if (operations.length === 0) {
       // bump-only: no platform config needed
       await runMiniCIWithConfig({
         args: {
@@ -124,9 +136,13 @@ export function uniMiniCI(options: UniMiniCIPluginOptions): Plugin {
     /** 项目产物目录 */
     const projectPath = readProjectPath(options);
 
+    if (isDev && operations.includes("open")) {
+      didRunDevOpen = true;
+    }
+
     await runMiniCIWithConfig({
       args: {
-        operations: pluginArgs.operations,
+        operations,
         ...(pluginArgs.bump && { bump: true }),
         platform,
         projectPath,
