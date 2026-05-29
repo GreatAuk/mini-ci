@@ -1,5 +1,10 @@
 import { parsePluginArgs } from "./parsePluginArgs";
-import { runMiniCIWithConfig, supportedPlatforms } from "uni-mini-ci-core";
+import {
+  createLogger,
+  isErrorLogged,
+  runMiniCIWithConfig,
+  supportedPlatforms,
+} from "uni-mini-ci-core";
 
 import type { Plugin, ResolvedConfig } from "vite";
 import type { MiniCIConfig, MiniCIPlatform } from "uni-mini-ci-core";
@@ -136,11 +141,11 @@ export function uniMiniCI(options: UniMiniCIPluginOptions): Plugin {
     /** 项目产物目录 */
     const projectPath = readProjectPath(options);
 
-    if (isDev && operations.includes("open")) {
-      didRunDevOpen = true;
-    }
+    /** 是否仅执行 open，open 失败时只 warning，不应中断 Vite 构建流程 */
+    const isPureOpen = operations.length === 1 && operations[0] === "open";
 
-    await runMiniCIWithConfig({
+    /** 共享 runner 入参 */
+    const runOptions = {
       args: {
         operations,
         ...(pluginArgs.bump && { bump: true }),
@@ -149,7 +154,37 @@ export function uniMiniCI(options: UniMiniCIPluginOptions): Plugin {
       },
       cwd: resolvedConfig?.root || process.cwd(),
       config: options,
-    });
+    };
+
+    if (isPureOpen) {
+      try {
+        await runMiniCIWithConfig(runOptions);
+      } catch (error) {
+        /** open 执行错误 */
+        const openError = error instanceof Error ? error : new Error(String(error));
+        const logger = createLogger();
+
+        // 失败时不置位 didRunDevOpen，dev/watch 下次保存可重试；
+        // 错误明细已由 core 打印时只补一句提示，否则带上 message 避免静默吞错
+        if (isErrorLogged(openError)) {
+          logger.warn("open 操作失败，已跳过（不影响构建）");
+        } else {
+          logger.warn("open 操作失败，已跳过（不影响构建）", openError.message);
+        }
+        return;
+      }
+
+      if (isDev) {
+        didRunDevOpen = true;
+      }
+      return;
+    }
+
+    await runMiniCIWithConfig(runOptions);
+
+    if (isDev && operations.includes("open")) {
+      didRunDevOpen = true;
+    }
   }
 
   return {

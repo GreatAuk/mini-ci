@@ -16,6 +16,9 @@ const tempDirs: string[] = [];
 /** bumpp versionBump mock */
 const versionBump = vi.fn();
 
+/** 非空时令 mock 的 open() 抛出该错误，模拟 open 执行失败 */
+let openError: Error | null = null;
+
 vi.mock("bumpp", () => ({
   versionBump: (options: unknown) => versionBump(options),
 }));
@@ -29,6 +32,9 @@ vi.mock("../../core/src/ci/registry", () => ({
         projectPath: config.projectPath,
         platform: config.platform,
       });
+      if (openError) {
+        throw openError;
+      }
       return {
         success: true,
         operation: config.operation,
@@ -129,6 +135,7 @@ async function runWatchBuildPlugin(plugin: Plugin, root: string) {
 
 afterEach(async () => {
   calls.length = 0;
+  openError = null;
   versionBump.mockReset();
   process.argv = originalArgv;
   if (originalUniPlatform === undefined) {
@@ -376,6 +383,87 @@ describe("uniMiniCI", () => {
     }
 
     expect(calls).toEqual([{ method: "open", projectPath: outputDir, platform: "mp-weixin" }]);
+  });
+
+  test("serve 模式纯 open 失败时只 warning 不中断", async () => {
+    const { cwd, outputDir } = await createProject("serve");
+    process.argv = ["node", "uni", "dev", "-p", "mp-weixin", "--", "--open"];
+    process.env.UNI_PLATFORM = "mp-weixin";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+    openError = new Error("工具的服务端口已关闭");
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    const plugin = uniMiniCI({});
+
+    try {
+      await expect(runServePlugin(plugin, cwd)).resolves.toBeUndefined();
+      expect(calls).toEqual([{ method: "open", projectPath: outputDir, platform: "mp-weixin" }]);
+      expect(logSpy.mock.calls.flat().some((line) => String(line).includes("open 操作失败"))).toBe(
+        true,
+      );
+    } finally {
+      logSpy.mockRestore();
+    }
+  });
+
+  test("watch build 模式（uni dev）纯 open 失败后下次保存重试", async () => {
+    const { cwd, outputDir } = await createProject("build");
+    process.argv = ["node", "uni", "dev", "-p", "mp-weixin", "--", "--open"];
+    process.env.UNI_PLATFORM = "mp-weixin";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+    process.env.NODE_ENV = "development";
+    openError = new Error("工具的服务端口已关闭");
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    const plugin = uniMiniCI({});
+
+    try {
+      if (typeof plugin.configResolved === "function") {
+        await (plugin.configResolved as Function).call(null, createWatchBuildConfig(cwd));
+      }
+
+      const closeBundle = plugin.closeBundle as Function;
+      // 前两次 open 失败：didRunDevOpen 不应锁定，每次都重试
+      await closeBundle.call(null);
+      await closeBundle.call(null);
+      expect(calls.filter((c) => c.method === "open")).toHaveLength(2);
+
+      // 修好问题后下次保存成功执行 open
+      openError = null;
+      await closeBundle.call(null);
+      expect(calls.filter((c) => c.method === "open")).toHaveLength(3);
+
+      // 成功后再次保存不再重复打开
+      await closeBundle.call(null);
+      expect(calls.filter((c) => c.method === "open")).toHaveLength(3);
+    } finally {
+      logSpy.mockRestore();
+    }
+  });
+
+  test("serve 模式 open 与 preview 混合时 open 失败仍中断", async () => {
+    const { cwd, outputDir } = await createProject("serve");
+    process.argv = ["node", "uni", "dev", "-p", "mp-weixin", "--", "--open", "--preview"];
+    process.env.UNI_PLATFORM = "mp-weixin";
+    process.env.UNI_OUTPUT_DIR = outputDir;
+    openError = new Error("工具的服务端口已关闭");
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    const plugin = uniMiniCI({
+      desc: "插件描述",
+      "mp-weixin": {
+        appid: "wx-appid",
+        privateKeyPath: "key/private.key",
+      },
+    });
+
+    try {
+      await expect(runServePlugin(plugin, cwd)).rejects.toThrow("工具的服务端口已关闭");
+      // open 排在最前，失败后中断，preview 不执行
+      expect(calls).toEqual([{ method: "open", projectPath: outputDir, platform: "mp-weixin" }]);
+    } finally {
+      logSpy.mockRestore();
+    }
   });
 
   test("未传操作时跳过", async () => {

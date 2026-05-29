@@ -101,7 +101,7 @@ export function createLogger(): Logger {
       writeLine(`  ${pc.gray(label)} ${pc.gray(value)}`);
     },
     warn(message, detail) {
-      writeLine(`  ${pc.yellow("!")} ${joinMessage(message, detail)}`);
+      writeLine(`  ${pc.yellow(`! ${joinMessage(message, detail)}`)}`);
     },
     error(message, detail) {
       writeLine(pc.red(`✕ ${joinMessage(message, detail)}`));
