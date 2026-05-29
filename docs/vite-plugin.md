@@ -2,8 +2,6 @@
 
 `vite-plugin-uni-mini-ci` 提供 `uniMiniCI()` Vite 插件，与 uniapp 的 Vite 构建流程深度集成，构建完成后自动执行 CI 操作。
 
-> monorepo 拆分后，`uniMiniCI()` 只从 `vite-plugin-uni-mini-ci` 导出；`uni-mini-ci-cli` 只保留 CLI 入口和 `defineConfig()`。
-
 ## 安装
 
 ```bash
@@ -99,8 +97,6 @@ uni dev -p mp-weixin -- --bump
 ```
 
 > **注意**：`--` 是参数分隔符，它之后的参数不会被 uni 命令消费，而是透传给 Vite 插件。
-
-如果不传 `--` 后面的参数，插件不会执行任何操作，构建正常完成。
 
 ## 工作原理
 
