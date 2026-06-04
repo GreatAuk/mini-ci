@@ -1,7 +1,10 @@
 # uni-mini-ci
 
-uniapp 小程序 CI（持续集成） 工具集，提供 **CLI** 和 **Vite 插件**（推荐）两种使用方式。
-在 `uni` 的 `build` 或 `dev` 命令完成后自动执行:
+做 uniapp 小程序开发时，很多团队每天都在重复同一套流程：先执行 uni build，再打开对应平台开发者工具，手动导入
+构建产物，点击预览、上传，最后再把二维码或上传结果发给测试、产品或运营。
+uni-mini-ci 想解决的就是这件事：把构建后的 CI 操作自动化。
+
+目前提供 **CLI** 和 **Vite 插件**（推荐）两种使用方式。在 `uni` 的 `build` 或 `dev` 命令完成后自动执行:
 
 - 打开开发者工具并打开项目
 - 上传开发版并生成预览二维码（等同于点击微信开发者工具中的“预览”按钮）
@@ -9,6 +12,7 @@ uniapp 小程序 CI（持续集成） 工具集，提供 **CLI** 和 **Vite 插�
 - 交交互式的更新版本号 -> 创建 git commit 和 tag -> git push。
 
 如我开发微信小程序的常用工作流
+
 ```json
 {
   "scripts": {
@@ -70,9 +74,9 @@ CLI 的 `minici.config.ts` 和 Vite 插件的 `uniMiniCI(options)` 使用同一�
 | ------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `version`     | `string`                                                                                                 | 发布版本号(一般不建议配置)，不定义时默认读取 `package.json` 中的 `version`。 如果配置了 --bump, 这个配置将不再生效        |
 | `desc`        | `string \| (context: MiniCIDescContext) => string \| Promise<string>`                                    | 发布描述，--upload 时使用。不定义时默认取 package.json 中的 description；如果想每次 upload 时自定义，可以参考 [Tip](#Tip) |
-| `projectPath` | `string`                                                                                                 | 构建产物目录，支持相对路径。正常不需要定义，内部自动判断                                                                                |
+| `projectPath` | `string`                                                                                                 | 构建产物目录，支持相对路径。正常不需要定义，内部自动判断                                                                  |
 | `hooks`       | `MiniCIHooks`                                                                                            | 完成和错误 hook。支持 `onPreviewComplete`、`onUploadComplete`、`onError`                                                  |
-| `qrcodePath`  | `{preview?: string, upload: string}`                                                                     | 二维码图片保存路径, 可选                                                                                                        |
+| `qrcodePath`  | `{preview?: string, upload: string}`                                                                     | 二维码图片保存路径, 可选                                                                                                  |
 | `bumpOptions` | `VersionBumpOptions \| ((ctx: BumpOptionsContext) => VersionBumpOptions \| Promise<VersionBumpOptions>)` | bumpp 程序化 API 参数。mini-ci 默认 `commit` 为 `true`、`tag/push` 为 `false`，可在此显式覆盖                             |
 | `mp-weixin`   | `WeappConfig`                                                                                            | 微信小程序平台配置                                                                                                        |
 | `mp-alipay`   | `AlipayConfig`                                                                                           | 支付宝小程序平台配置                                                                                                      |
