@@ -22,6 +22,16 @@ vi.mock("shelljs", () => ({
 }));
 
 /**
+ * 移除 ANSI 颜色控制字符。
+ *
+ * @param value 待处理文本
+ * @returns 无颜色控制字符的文本
+ */
+function stripAnsi(value: string): string {
+  return value.replace(/\u001b\[[0-9;]*m/g, "");
+}
+
+/**
  * 创建微信平台测试配置。
  *
  * @param qrcodePath 二维码图片保存路径配置
@@ -119,6 +129,32 @@ describe("WeappCI - qrcodePath 路径选取", () => {
     const result = await ci.upload();
 
     expect(result.qrCodeLocalPath).toBe("/custom/upload.png");
+  });
+
+  it("upload() 成功后打印微信公众平台下一步操作提示", async () => {
+    /** console.log mock */
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    /** 微信 CI 实例 */
+    const ci = new WeappCI(makeWeappConfig());
+    (ci as any).ci = {
+      upload: vi.fn().mockResolvedValue({}),
+    };
+    (ci as any).instance = {};
+
+    try {
+      await ci.upload();
+
+      /** 去除颜色后的日志文本 */
+      const output = log.mock.calls.map(([line]) => stripAnsi(String(line))).join("\n");
+
+      expect(output).toContain("下一步操作:");
+      expect(output).toContain("1. 登录微信公众平台: https://mp.weixin.qq.com");
+      expect(output).toContain('2. 进入 "管理 -> 版本管理"');
+      expect(output).toContain('3. 在 "开发版本" 中找到刚上传的版本');
+      expect(output).toContain('4. 点击 "选为体验版" 按钮');
+    } finally {
+      log.mockRestore();
+    }
   });
 });
 

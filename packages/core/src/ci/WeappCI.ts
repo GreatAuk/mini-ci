@@ -199,6 +199,12 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
         );
       }
 
+      this.logger.remind("下一步操作:");
+      this.logger.remind("1. 登录微信公众平台: https://mp.weixin.qq.com");
+      this.logger.remind('2. 进入 "管理 -> 版本管理"');
+      this.logger.remind('3. 在 "开发版本" 中找到刚上传的版本');
+      this.logger.remind('4. 点击 "选为体验版" 按钮');
+
       return this.createResult(true, {
         qrCodeContent: qrContent,
         qrCodeLocalPath: uploadQrcodePath,
