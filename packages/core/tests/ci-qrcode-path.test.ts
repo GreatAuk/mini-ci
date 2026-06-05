@@ -1,9 +1,11 @@
+import { stripVTControlCharacters } from "node:util";
 import { describe, expect, it, vi } from "vitest";
 import { WeappCI } from "../src/ci/WeappCI";
 import { AlipayCI } from "../src/ci/AlipayCI";
 import { SwanCI } from "../src/ci/SwanCI";
 import { TTCI } from "../src/ci/TTCI";
 import { JdCI } from "../src/ci/JdCI";
+import { generateQrcodeImageFile } from "../src/utils/qrcode";
 
 import type { NormalizedMiniCIConfig } from "../src/types";
 
@@ -22,13 +24,47 @@ vi.mock("shelljs", () => ({
 }));
 
 /**
- * 移除 ANSI 颜色控制字符。
- *
- * @param value 待处理文本
- * @returns 无颜色控制字符的文本
+ * 微信上传成功后的下一步操作提示。
  */
-function stripAnsi(value: string): string {
-  return value.replace(/\u001b\[[0-9;]*m/g, "");
+const weappUploadNextStepLines = [
+  "下一步操作:",
+  "1. 登录微信公众平台: https://mp.weixin.qq.com",
+  '2. 进入 "管理 -> 版本管理"',
+  '3. 在 "开发版本" 中找到刚上传的版本',
+  '4. 点击 "选为体验版" 按钮',
+];
+
+/**
+ * 读取去除颜色和提醒前缀后的日志行。
+ *
+ * @param log console.log mock
+ * @returns 标准化后的日志行
+ */
+function getStrippedLogLines(log: {
+  mock: { calls: ReadonlyArray<readonly unknown[]> };
+}): string[] {
+  return log.mock.calls.map(([line]) => {
+    /** 去色后的单行日志 */
+    const strippedLine = stripVTControlCharacters(String(line)).trim();
+    return strippedLine.startsWith("i ") ? strippedLine.slice(2) : strippedLine;
+  });
+}
+
+/**
+ * 断言微信上传下一步操作提示块按顺序输出。
+ *
+ * @param logLines 去色后的日志行
+ */
+function expectWeappUploadNextStepLines(logLines: string[]): void {
+  /** 提示块起始索引 */
+  const startIndex = logLines.findIndex((line) => line === weappUploadNextStepLines[0]);
+
+  expect(startIndex).toBeGreaterThanOrEqual(0);
+
+  /** 实际提示块日志行 */
+  const actualLines = logLines.slice(startIndex, startIndex + weappUploadNextStepLines.length);
+
+  expect(actualLines).toEqual(weappUploadNextStepLines);
 }
 
 /**
@@ -144,14 +180,38 @@ describe("WeappCI - qrcodePath 路径选取", () => {
     try {
       await ci.upload();
 
-      /** 去除颜色后的日志文本 */
-      const output = log.mock.calls.map(([line]) => stripAnsi(String(line))).join("\n");
+      /** 去色后的日志行 */
+      const outputLines = getStrippedLogLines(log);
 
-      expect(output).toContain("下一步操作:");
-      expect(output).toContain("1. 登录微信公众平台: https://mp.weixin.qq.com");
-      expect(output).toContain('2. 进入 "管理 -> 版本管理"');
-      expect(output).toContain('3. 在 "开发版本" 中找到刚上传的版本');
-      expect(output).toContain('4. 点击 "选为体验版" 按钮');
+      expectWeappUploadNextStepLines(outputLines);
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  it("upload() 体验版二维码生成失败但上传成功时仍打印微信公众平台下一步操作提示", async () => {
+    /** console.log mock */
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    /** 生成二维码图片 mock */
+    const generateQrcodeImageFileMock = vi.mocked(generateQrcodeImageFile);
+    /** 微信 CI 实例 */
+    const ci = new WeappCI(makeWeappConfig());
+    (ci as any).ci = {
+      upload: vi.fn().mockResolvedValue({}),
+    };
+    (ci as any).instance = {};
+
+    generateQrcodeImageFileMock.mockRejectedValueOnce(new Error("qrcode failed"));
+
+    try {
+      /** 上传结果 */
+      const result = await ci.upload();
+      /** 去色后的日志行 */
+      const outputLines = getStrippedLogLines(log);
+
+      expect(result.success).toBe(true);
+      expect(result.qrCodeLocalPath).toBe("/project/upload.png");
+      expectWeappUploadNextStepLines(outputLines);
     } finally {
       log.mockRestore();
     }
