@@ -84,6 +84,78 @@ CLI 的 `minici.config.ts` 和 Vite 插件的 `uniMiniCI(options)` 使用同一�
 | `mp-jd`       | `JdConfig`                                                                                               | 京东小程序平台配置                                                                                                        |
 | `mp-toutiao`  | `TTConfig`                                                                                               | 抖音小程序平台配置                                                                                                        |
 
+### hooks
+
+`hooks` 支持同步或异步函数，异步函数执行完成后才会继续后续流程。CLI 和 Vite 插件共用以下回调：
+
+| 回调                | 触发时机                                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `onPreviewComplete` | 进入 `preview` CI 方法后触发，成功和失败都会触发。可在此发送预览结果的邮件、飞书等通知                        |
+| `onUploadComplete`  | 进入 `upload` CI 方法后触发，成功和失败都会触发。可在此发送上传结果的邮件、飞书等通知                         |
+| `onError`           | bump、配置归一化、项目路径检查、CI 初始化、CI 操作或 complete hook 发生错误时触发，用于统一记录或上报错误信息 |
+
+`onPreviewComplete` 和 `onUploadComplete` 接收相同的数据结构：
+
+| 字段                   | TypeScript 类型       | 说明                                    |
+| ---------------------- | --------------------- | --------------------------------------- |
+| `success`              | `boolean`             | 当前 `preview` 或 `upload` 操作是否成功 |
+| `data.platform`        | `MiniCIPlatform`      | 当前小程序平台                          |
+| `data.version`         | `string`              | 当前版本号                              |
+| `data.desc`            | `string`              | 当前发布描述                            |
+| `data.projectPath`     | `string`              | 小程序构建产物目录                      |
+| `data.qrCodeLocalPath` | `string \| undefined` | 二维码本地路径，未生成时为空            |
+| `data.qrCodeContent`   | `string \| undefined` | 二维码内容，未生成时为空                |
+| `error`                | `Error \| undefined`  | 操作失败时的错误对象，成功时为空        |
+
+`onError` 接收 `error` 错误对象，以及可能存在的 `operation`、`platform` 和 `data` 上下文。错误发生得越早，可提供的上下文字段越少；例如 bump 失败时 `operation` 为空。
+
+当 `preview` 或 `upload` CI 方法失败时，会先执行对应的 complete hook（`success` 为 `false`），再执行 `onError`，最后终止主流程。配置归一化、项目路径检查、CI 初始化等前置阶段失败时只执行 `onError`。`open` 操作不执行 complete hook，但执行失败时会触发 `onError`。
+
+可以通过 `result.success` 区分成功和失败通知。以下 `sendNotification` 是业务侧通知函数的示例，可替换为邮件服务或飞书机器人接口：
+
+```ts
+import { defineConfig } from "uni-mini-ci-cli";
+
+/**
+ * 发送构建结果通知。
+ *
+ * @param input 通知内容
+ */
+async function sendNotification(input: { title: string; message: string }) {
+  // 在这里调用邮件或飞书通知 API
+}
+
+export default defineConfig({
+  hooks: {
+    /** preview 完成后发送通知 */
+    async onPreviewComplete(result) {
+      await sendNotification({
+        title: result.success ? "小程序预览成功" : "小程序预览失败",
+        message: result.success
+          ? [
+              `二维码路径：${result.data.qrCodeLocalPath ?? "未生成"}`,
+              `二维码 URL/内容：${result.data.qrCodeContent ?? "未生成"}`,
+            ].join("\n")
+          : (result.error?.message ?? "未知错误"),
+      });
+    },
+    /** upload 完成后发送通知 */
+    async onUploadComplete(result) {
+      await sendNotification({
+        title: result.success ? "小程序上传成功" : "小程序上传失败",
+        message: result.success
+          ? [
+              `${result.data.platform} v${result.data.version}`,
+              `二维码路径：${result.data.qrCodeLocalPath ?? "未生成"}`,
+              `二维码 URL/内容：${result.data.qrCodeContent ?? "未生成"}`,
+            ].join("\n")
+          : (result.error?.message ?? "未知错误"),
+      });
+    },
+  },
+});
+```
+
 ### bumpOptions
 
 `bumpOptions` 复用 [bumpp](https://github.com/antfu-collective/bumpp) 的 `VersionBumpOptions`。文档只列出常用字段：
