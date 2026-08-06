@@ -1,6 +1,6 @@
 {
   "name": "uni-mini-ci-cli",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A CLI for mini program CI after uniapp builds.",
   "homepage": "https://github.com/author/library#readme",
   "bugs": {
