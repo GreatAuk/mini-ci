@@ -4,7 +4,7 @@
 构建产物，点击预览、上传，最后再把二维码或上传结果发给测试、产品或运营。
 uni-mini-ci 想解决的就是这件事：把构建后的 CI 操作自动化。
 
-目前提供 **CLI** 和 **Vite 插件**（推荐）两种使用方式。在 `uni` 的 `build` 或 `dev` 命令完成后自动执行:
+项目提供两种使用方式：独立的 CLI 和 Vite 插件。推荐使用 Vite 插件，让 CI 操作在 `uni build` 或 `uni dev` 完成后自动执行。
 
 - 打开开发者工具并打开项目
 - 上传开发版并生成预览二维码（等同于点击微信开发者工具中的“预览”按钮）
@@ -33,7 +33,7 @@ uni-mini-ci 想解决的就是这件事：把构建后的 CI 操作自动化。
 
 ## 支持的平台
 
-> 目前我只测试了微信小程序的，其他平台因为需要开发账号，所以还没测试😬。如果有问题欢迎反馈。
+目前我只测试了微信小程序的，其他平台因为需要开发账号，所以还没测试😬。如果有问题欢迎反馈。
 
 | 平台                     | 依赖 CI SDK 包名    | SDK 文档                                                                                                                                     |
 | ------------------------ | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -160,17 +160,17 @@ export default defineConfig({
 
 `bumpOptions` 复用 [bumpp](https://github.com/antfu-collective/bumpp) 的 `VersionBumpOptions`。文档只列出常用字段：
 
-| 字段      | 说明                                                                                   |
-| --------- | -------------------------------------------------------------------------------------- |
-| `release` | 发布类型或明确版本号，例如 `patch`、`minor`、`major`、`1.2.3`                          |
-| `commit`  | 是否创建 git commit。 默认 `true`                                                      |
-| `tag`     | 是否创建 git tag。默认 `false`                                                         |
-| `push`    | 是否推送 commit 和 tag。 默认 `false`                                                  |
-| `confirm` | 是否让用户执行确认提示，默认是 true. 如果需要适用 CI/CD 等自动化场景，建议设置为 false |
+| 字段      | 说明                                                                   |
+| --------- | ---------------------------------------------------------------------- |
+| `release` | 发布类型或明确版本号，例如 `patch`、`minor`、`major`、`1.2.3`          |
+| `commit`  | 是否创建 Git commit，默认 `true`                                       |
+| `tag`     | 是否创建 Git tag，默认 `false`                                         |
+| `push`    | 是否推送 commit 和 tag，默认 `false`                                   |
+| `confirm` | 是否显示确认提示，默认 `true`。在 CI/CD 等自动化场景中建议设为 `false` |
 
 各平台配置字段的详细说明见对应使用文档。
 
-## Vite 插件使用(推荐)
+## 快速开始：Vite 插件（推荐）
 
 ```bash
 pnpm add -D vite-plugin-uni-mini-ci
@@ -189,7 +189,7 @@ export default defineConfig({
     uniMiniCI({
       desc: ({ platform, version }) => `${platform} v${version} 自动构建`,
       "mp-weixin": {
-        // 如果只想 --open 操作，可以不配置 "mp-weixin"
+        // 仅使用 --open 时，可以省略 "mp-weixin" 配置
         appid: "wx1234567890abcdef",
         privateKeyPath: "./key/private.key",
         robot: 1,
@@ -212,7 +212,7 @@ uni -p mp-weixin -- --open
 
 `uni dev` 场景支持 `--open` 和 `--preview`，不支持 `--upload`。
 
-详细用法、构建模式差异 → [docs/vite-plugin.md](docs/vite-plugin.md)
+详细用法和构建模式差异，请参阅 [Vite 插件文档](docs/vite-plugin.md)。
 
 ## CLI 使用
 
@@ -285,6 +285,8 @@ minici --open --preview --upload --platform mp-weixin
 }
 ```
 
+在 `vite.config.ts` 的 `uniMiniCI()` 配置中设置 `bumpOptions`，即可控制版本更新是否创建 commit、tag 和推送远程仓库：
+
 ```ts
 // vite.config.ts
 export default defineConfig({
@@ -318,6 +320,7 @@ export default defineConfig({
   ],
 });
 
+/** 根据当前 npm 脚本生成发布描述。 */
 async function getDesc() {
   // 当前执行的 npm script
   const npmScript = process.env.npm_lifecycle_event;
@@ -345,10 +348,10 @@ async function getDesc() {
 ```ts
 import { runMiniCIWithConfig } from "uni-mini-ci-core";
 
-// 直接传入配置
+/** 直接传入配置。 */
 await runMiniCIWithConfig({
   args: {
-    operation: "upload",
+    operations: ["upload"],
     platform: "mp-weixin",
     projectPath: "dist/build/mp-weixin",
   },
@@ -437,6 +440,8 @@ await runMiniCIWithConfig({
 
 ## 开发
 
+开发本仓库需要 Node.js `>= 22` 和 pnpm `>= 10`。
+
 ```bash
 pnpm install
 pnpm run test
@@ -455,6 +460,6 @@ pnpm run build
 
 `uni-mini-ci-core` 承载平台 CI 实现、配置归一化、公共类型和 `runMiniCIWithConfig()`，由 CLI 和 Vite 插件各自作为普通依赖引入，不需要手动安装。
 
-## 感谢
+## 致谢
 
 [taro-plugin-mini-ci](https://github.com/NervJS/taro/tree/main/packages/taro-plugin-mini-ci)
