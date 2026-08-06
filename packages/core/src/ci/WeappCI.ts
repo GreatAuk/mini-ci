@@ -1,4 +1,3 @@
-import crypto from "node:crypto";
 import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -74,22 +73,6 @@ export class WeappCI extends BaseCI<"mp-weixin"> {
       devToolsInstallPath,
       os.platform() === "win32" ? "/cli.bat" : "/Contents/MacOS/cli",
     );
-
-    const isWindows = os.platform() === "win32";
-    const installPath = isWindows ? devToolsInstallPath : `${devToolsInstallPath}/Contents/MacOS`;
-    const md5 = crypto.createHash("md5").update(installPath).digest("hex");
-    const ideStatusFile = path.join(
-      os.homedir(),
-      isWindows
-        ? `/AppData/Local/微信开发者工具/User Data/${md5}/Default/.ide-status`
-        : `/Library/Application Support/微信开发者工具/${md5}/Default/.ide-status`,
-    );
-
-    if (!existsSync(ideStatusFile)) {
-      throw new Error(
-        "工具的服务端口已关闭。要使用命令行调用工具，请打开工具 -> 设置 -> 安全设置，将服务端口开启。",
-      );
-    }
 
     if (!existsSync(cliPath)) {
       throw new Error(`命令行工具路径不存在：${cliPath}`);
